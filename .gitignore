@@ -46,6 +46,10 @@ TestResult.xml
 [Rr]eleasePS/
 dlldata.c
 
+# NODEJS
+*/node_modules
+*node_modules/*
+node_modules/
 # .NET Core
 project.lock.json
 project.fragment.lock.json
