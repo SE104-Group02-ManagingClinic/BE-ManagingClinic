@@ -1,6 +1,31 @@
         CREATE DATABASE IF NOT EXISTS CLINIC_DB;
         USE CLINIC_DB;
 
+        CREATE TABLE CHUCNANG(
+            MaChucNang VARCHAR(5) PRIMARY KEY,
+            TenChucNang VARCHAR(30) UNIQUE,
+            TenManHinhDuocLoad TEXT
+        );
+
+        CREATE TABLE NHOMNGUOIDUNG(
+            MaNhom VARCHAR(5) PRIMARY KEY,
+            TenNhom VARCHAR(20) UNIQUE
+        );
+
+        CREATE TABLE PHANQUYEN(
+            MaNhom VARCHAR(5),
+            MaChucNang VARCHAR(5),
+            PRIMARY KEY(MaNhom, MaChucNang),
+            FOREIGN KEY (MaNhom) REFERENCES NHOMNGUOIDUNG(MaNhom),
+            FOREIGN KEY (MaChucNang) REFERENCES CHUCNANG(MaChucNang)
+        );
+
+        CREATE TABLE NGUOIDUNG(
+            TenDangNhap VARCHAR(60) PRIMARY KEY,
+            MatKhau VARCHAR(60),
+            MaNhom VARCHAR(5),
+            FOREIGN KEY (MaNhom)  REFERENCES NHOMNGUOIDUNG(MaNhom)
+        );
 
         -- Bảng lưu trữ thông tin về các loại bệnh
         CREATE TABLE BENH (
@@ -47,21 +72,6 @@
             GiaBan INTEGER,
             FOREIGN KEY (MaDVT) REFERENCES DONVITINH(MaDVT),
             FOREIGN KEY (MaCachDung) REFERENCES CACHDUNG(MaCachDung)
-        );
-
-        -- Bảng lưu trữ vai trò của người dùng (Admin, Bác sĩ, Thu ngân,...)
-        CREATE TABLE VAITRONGUOIDUNG (
-            MaVaiTro VARCHAR(5) PRIMARY KEY,
-            TenVaiTro VARCHAR(20) UNIQUE
-        );
-
-        -- Bảng lưu trữ thông tin người dùng (Bác sĩ, nhân viên,...)
-        CREATE TABLE NGUOIDUNG (
-            MaNguoiDung VARCHAR(5) PRIMARY KEY,
-            TenNguoiDung VARCHAR(20),
-            MatKhau VARCHAR(60),
-            MaVaiTro VARCHAR(5),
-            FOREIGN KEY (MaVaiTro) REFERENCES VAITRONGUOIDUNG(MaVaiTro)
         );
 
         -- Bảng Phiếu Khám Bệnh (Chứa thông tin khám bệnh tổng quát)
