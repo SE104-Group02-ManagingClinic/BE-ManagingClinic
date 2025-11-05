@@ -1,0 +1,44 @@
+const ArgumentService =  require('../services/argument_service');
+
+// Tạo các giá trị tham số
+exports.createThamSo = async (req, res) => {
+    try {
+        const {
+            so_benh_nhan,
+            ti_le,
+            tien_kham
+        } = req.body;
+        const data = {
+            so_benh_nhan,
+            ti_le,
+            tien_kham            
+        };
+        const record = await ArgumentService.createThamSo(data);
+        // console.log(record);
+        res.status(201).json({
+            SoBenhNhanToiDa: record.SoBenhNhanToiDa,
+            TiLeTinhDonGiaBan: record.TiLeTinhDonGiaBan,
+            TienKham: record.TienKham
+        });
+    }
+    catch (error) {
+        console.error('Error createThamSo: ', error);
+        res.status(500).json({error: 'Internal Server Error'});        
+    }
+}
+
+// Lấy các giá trị tham số
+exports.getThamSo = async (req, res) => {
+    try {
+        const record = await ArgumentService.getThamSo();
+        res.status(201).json({
+            SoBenhNhanToiDa: record.SoBenhNhanToiDa,
+            TiLeTinhDonGiaBan: record.TiLeTinhDonGiaBan,
+            TienKham: record.TienKham
+        });
+    }
+    catch (error) {
+        console.error('Error getThamSo: ', error);
+        res.status(500).json({error: 'Internal Server Error'});
+    }
+}

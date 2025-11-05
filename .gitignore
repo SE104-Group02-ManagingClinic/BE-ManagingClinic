@@ -47,9 +47,9 @@ TestResult.xml
 dlldata.c
 
 # NODEJS
-*/node_modules
+backend/node_modules
 *node_modules/*
-node_modules/
+*/node_modules/
 # .NET Core
 project.lock.json
 project.fragment.lock.json

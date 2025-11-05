@@ -1,1 +1,1 @@
-const Medicine = require('../models/medicine_model');
+// const medicineModel = require('../models/medicine_model');
