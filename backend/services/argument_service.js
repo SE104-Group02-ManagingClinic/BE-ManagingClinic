@@ -74,7 +74,7 @@ class ArgumentService {
     }
 
     // Cập nhật Tiền khám
-    static async updateSTienKham (tien_kham_moi) {
+    static async updateTienKham (tien_kham_moi) {
         try {
             const affectRow = db.query(
                 "update THAMSO set TienKham = ?",
@@ -87,7 +87,7 @@ class ArgumentService {
             return record[0];
         } 
         catch (error) {
-            console.log("ArgumentService - updateSTienKham: ", error);
+            console.log("ArgumentService - updateTienKham: ", error);
         }
     }
 }
