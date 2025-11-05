@@ -1,0 +1,1 @@
+const Disease = require('../models/disease_model');
