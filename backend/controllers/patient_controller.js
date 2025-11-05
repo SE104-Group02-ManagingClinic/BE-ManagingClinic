@@ -1,1 +1,1 @@
-const Patient = require('../models/patient_model');
+// const patientModel = require('../models/patient_model');
