@@ -67,7 +67,7 @@ router.post('/createThamSo', argumentController.createThamSo);
  *     tags:
  *       - Argument
  *     responses:
- *       201:
+ *       200:
  *         description: Truy xuất thành công thông tin cấu hình
  *         content:
  *           application/json:
@@ -92,5 +92,136 @@ router.post('/createThamSo', argumentController.createThamSo);
  */
 router.get('/getThamSo', argumentController.getThamSo);
 
+/**
+ * @swagger
+ * /argument/updateSoBenhNhanToiDa:
+ *   post:
+ *     summary: Cập nhật số bệnh nhân tối đa
+ *     description: API dùng để cập nhật giá trị `SoBenhNhanToiDa` trong bảng THAMSO. Sau khi cập nhật, trả về bản ghi hiện tại của bảng.
+ *     tags:
+ *       - Argument
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - so_benh_nhan_moi
+ *             properties:
+ *               so_benh_nhan_moi:
+ *                 type: integer
+ *                 description: Giá trị mới của số bệnh nhân tối đa
+ *                 example: 60
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công và trả về bản ghi hiện tại trong bảng THAMSO
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 SoBenhNhanToiDa:
+ *                   type: integer
+ *                   example: 60
+ *                 TiLeTinhDonGiaBan:
+ *                   type: number
+ *                   format: float
+ *                   example: 1.2
+ *                 TienKham:
+ *                   type: integer
+ *                   example: 100000
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.post('/updateSoBenhNhanToiDa', argumentController.updateSoBenhNhanToiDa);
 
+/**
+ * @swagger
+ * /argument/updateTiLeTinhDonGiaBan:
+ *   post:
+ *     summary: Cập nhật tỉ lệ tính đơn giá bán
+ *     description: API dùng để cập nhật giá trị `TiLeTinhDonGiaBan` trong bảng THAMSO. Sau khi cập nhật, trả về bản ghi hiện tại của bảng.
+ *     tags:
+ *       - Argument
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ti_le_moi
+ *             properties:
+ *               ti_le_moi:
+ *                 type: number
+ *                 format: float
+ *                 description: Giá trị mới của tỉ lệ tính đơn giá bán
+ *                 example: 1.5
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công và trả về bản ghi hiện tại trong bảng THAMSO
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 SoBenhNhanToiDa:
+ *                   type: integer
+ *                   example: 50
+ *                 TiLeTinhDonGiaBan:
+ *                   type: number
+ *                   format: float
+ *                   example: 1.5
+ *                 TienKham:
+ *                   type: integer
+ *                   example: 100000
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.post('/updateTiLeTinhDonGiaBan', argumentController.updateTiLeTinhDonGiaBan);
+
+/**
+ * @swagger
+ * /argument/updateTienKham:
+ *   post:
+ *     summary: Cập nhật tiền khám
+ *     description: API dùng để cập nhật giá trị `TienKham` trong bảng THAMSO. Sau khi cập nhật, trả về bản ghi hiện tại của bảng.
+ *     tags:
+ *       - Argument
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tien_kham
+ *             properties:
+ *               tien_kham:
+ *                 type: integer
+ *                 description: Giá trị mới của tiền khám
+ *                 example: 120000
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công và trả về bản ghi hiện tại trong bảng THAMSO
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 SoBenhNhanToiDa:
+ *                   type: integer
+ *                   example: 50
+ *                 TiLeTinhDonGiaBan:
+ *                   type: number
+ *                   format: float
+ *                   example: 1.2
+ *                 TienKham:
+ *                   type: integer
+ *                   example: 120000
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.post('/updateTienKham', argumentController.updateTienKham);
 module.exports = router;
