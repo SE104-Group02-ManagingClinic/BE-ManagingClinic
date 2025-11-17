@@ -95,7 +95,7 @@ router.get('/getThamSo', argumentController.getThamSo);
 /**
  * @swagger
  * /argument/updateSoBenhNhanToiDa:
- *   post:
+ *   patch:
  *     summary: Cập nhật số bệnh nhân tối đa
  *     description: API dùng để cập nhật giá trị `SoBenhNhanToiDa` trong bảng THAMSO. Sau khi cập nhật, trả về bản ghi hiện tại của bảng.
  *     tags:
@@ -134,12 +134,12 @@ router.get('/getThamSo', argumentController.getThamSo);
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */
-router.post('/updateSoBenhNhanToiDa', argumentController.updateSoBenhNhanToiDa);
+router.patch('/updateSoBenhNhanToiDa', argumentController.updateSoBenhNhanToiDa);
 
 /**
  * @swagger
  * /argument/updateTiLeTinhDonGiaBan:
- *   post:
+ *   patch:
  *     summary: Cập nhật tỉ lệ tính đơn giá bán
  *     description: API dùng để cập nhật giá trị `TiLeTinhDonGiaBan` trong bảng THAMSO. Sau khi cập nhật, trả về bản ghi hiện tại của bảng.
  *     tags:
@@ -179,12 +179,12 @@ router.post('/updateSoBenhNhanToiDa', argumentController.updateSoBenhNhanToiDa);
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */
-router.post('/updateTiLeTinhDonGiaBan', argumentController.updateTiLeTinhDonGiaBan);
+router.patch('/updateTiLeTinhDonGiaBan', argumentController.updateTiLeTinhDonGiaBan);
 
 /**
  * @swagger
  * /argument/updateTienKham:
- *   post:
+ *   patch:
  *     summary: Cập nhật tiền khám
  *     description: API dùng để cập nhật giá trị `TienKham` trong bảng THAMSO. Sau khi cập nhật, trả về bản ghi hiện tại của bảng.
  *     tags:
@@ -223,5 +223,6 @@ router.post('/updateTiLeTinhDonGiaBan', argumentController.updateTiLeTinhDonGiaB
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */
-router.post('/updateTienKham', argumentController.updateTienKham);
+router.patch('/updateTienKham', argumentController.updateTienKham);
+
 module.exports = router;
