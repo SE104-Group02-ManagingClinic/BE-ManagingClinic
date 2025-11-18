@@ -12,6 +12,7 @@
   - B3.5: `show tables;` để xem các bảng
 
 ### 2. Chạy backend
+- Mở terminal trong repo đã kéo xuống và thực hiện tuần tự theo các lệnh dưới
 ```shell
 # B1: Vị trí ban đầu là tại thư mục BE-MANAGINGCLINIC --> chuyển tới thư mục backend
 cd .\backend\
@@ -22,7 +23,7 @@ npm install
 # B3: Chạy server
 node index.js
 ```
-
+- Sau khi terminal hiển thị `Server is listening on port 5000` -> Mở đường link với URL: [http://localhost:5000/api-docs](http://localhost:5000/api-docs/) để xem các API
 ## QUY TẮC LÀM VIỆC TRÊN GITHUB
 - Trước khi bắt đầu làm, đọc kĩ quy trình làm việc với Git & GitHub [tại đây](https://www.figma.com/board/sAU9OhFxPQCTKGghPKQqbF/Quy-tr%C3%ACnh-Git-%26-GitHub?node-id=0-1&t=GYFBeSfRyeSQG1Zb-1).
 - Chỉ commit khi hoàn thành 1 chức năng/ bug nào đó, không commit khi đang làm dở, không commit dồn.
