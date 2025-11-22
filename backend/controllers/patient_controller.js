@@ -1,1 +1,0 @@
-// const patientModel = require('../models/patient_model');
