@@ -123,7 +123,7 @@ class DiseaseService {
             return true;
         }
         catch (error) {
-            console.log("DiseaseService existedBenh Error: ", error);
+            console.log("DiseaseService deleteBenh Error: ", error);
         }
     }
     
