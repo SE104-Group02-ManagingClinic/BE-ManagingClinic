@@ -19,9 +19,6 @@ class DiseaseService {
             if (rows.length > 0) {
                 lastId = rows[0].MaBenh;
             }
-            else {
-                lastId = "";
-            }
 
             // Tạo MaBenh mới theo mã bệnh cuối
             const nextId = this.createId(lastId);
