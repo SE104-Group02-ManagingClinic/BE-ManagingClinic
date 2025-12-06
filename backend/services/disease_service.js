@@ -19,9 +19,6 @@ class DiseaseService {
             if (rows.length > 0) {
                 lastId = rows[0].MaBenh;
             }
-            else {
-                lastId = "";
-            }
 
             // Tạo MaBenh mới theo mã bệnh cuối
             const nextId = this.createId(lastId);
@@ -123,7 +120,7 @@ class DiseaseService {
             return true;
         }
         catch (error) {
-            console.log("DiseaseService existedBenh Error: ", error);
+            console.log("DiseaseService deleteBenh Error: ", error);
         }
     }
     

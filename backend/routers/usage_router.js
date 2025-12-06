@@ -1,3 +1,5 @@
+// Liên quan đến cách dùng thuốc
+// + Lập danh sách cách dùng thuôc
 const router = require('express').Router();
 const usageController = require('../controllers/usage_controller');
 
@@ -8,12 +10,13 @@ const usageController = require('../controllers/usage_controller');
  *   description: Các API liên quan tới bảng CACHDUNG (Tạo, Lấy, Cập nhật, Xóa)
  */
 
+// Tạo cách dùng mới
 /**
  * @swagger
  * /usage/createUsage:
  *   post:
  *     summary: Tạo mới một cách dùng
- *     description: Thêm một bản ghi mới vào bảng CACHDUNG với mã cách dùng và tên cách dùng.
+ *     description: API để thêm một cách dùng mới vào hệ thống
  *     tags:
  *       - Usage
  *     requestBody:
@@ -23,14 +26,9 @@ const usageController = require('../controllers/usage_controller');
  *           schema:
  *             type: object
  *             required:
- *               - ma_cach_dung
- *               - ten_cach_dung
+ *               - TenCachDung
  *             properties:
- *               ma_cach_dung:
- *                 type: string
- *                 description: Mã cách dùng (duy nhất)
- *                 example: CD001
- *               ten_cach_dung:
+ *               TenCachDung:
  *                 type: string
  *                 description: Tên cách dùng
  *                 example: Uống sau bữa ăn
@@ -46,8 +44,26 @@ const usageController = require('../controllers/usage_controller');
  *                 TenCachDung: Uống sau bữa ăn
  *       400:
  *         description: Dữ liệu không hợp lệ hoặc thiếu thông tin
+ *       409:
+ *         description: Tên cách dùng đã tồn tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Tên cách dùng đã tồn tại"
  *       500:
  *         description: Lỗi máy chủ nội bộ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.post('/createUsage', usageController.createUsage);
 
@@ -77,17 +93,33 @@ router.post('/createUsage', usageController.createUsage);
  *                     example: Uống sau bữa ăn
  *       500:
  *         description: Lỗi máy chủ nội bộ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.get('/getUsage', usageController.getUsage);
 
 /**
  * @swagger
- * /usage/updateUsage:
+ * /usage/updateUsage/{MaCachDung}:
  *   put:
  *     summary: Cập nhật thông tin cách dùng
  *     description: Cập nhật tên cách dùng dựa trên mã cách dùng có sẵn trong bảng CACHDUNG.
  *     tags:
  *       - Usage
+ *     parameters:
+ *       - in: path
+ *         name: MaCachDung
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Mã cách dùng cần cập nhật
+ *         example: CD001
  *     requestBody:
  *       required: true
  *       content:
@@ -95,28 +127,40 @@ router.get('/getUsage', usageController.getUsage);
  *           schema:
  *             type: object
  *             required:
- *               - ma_cach_dung
- *               - ten_cach_dung
+ *               - TenCachDung
  *             properties:
- *               ma_cach_dung:
- *                 type: string
- *                 example: CD001
- *               ten_cach_dung:
+ *               TenCachDung:
  *                 type: string
  *                 example: Uống trước bữa sáng
  *     responses:
  *       200:
  *         description: Cập nhật thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: string
+ *                   example: "Cập nhật thành công"
  *       404:
  *         description: Không tìm thấy cách dùng để cập nhật
  *       500:
  *         description: Lỗi máy chủ nội bộ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
-router.put('/updateUsage', usageController.updateUsage);
+router.put('/updateUsage/:MaCachDung', usageController.updateUsage);
 
 /**
  * @swagger
- * /usage/deleteUsage/{ma_cach_dung}:
+ * /usage/deleteUsage/{MaCachDung}:
  *   delete:
  *     summary: Xóa một cách dùng
  *     description: Xóa một bản ghi trong bảng CACHDUNG dựa trên mã cách dùng.
@@ -124,7 +168,7 @@ router.put('/updateUsage', usageController.updateUsage);
  *       - Usage
  *     parameters:
  *       - in: path
- *         name: ma_cach_dung
+ *         name: MaCachDung
  *         required: true
  *         schema:
  *           type: string
@@ -138,6 +182,6 @@ router.put('/updateUsage', usageController.updateUsage);
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */
-router.delete('/deleteUsage/:ma_cach_dung', usageController.deleteUsage);
+router.delete('/deleteUsage/:MaCachDung', usageController.deleteUsage);
 
 module.exports = router;

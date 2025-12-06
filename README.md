@@ -24,6 +24,14 @@ npm install
 node index.js
 ```
 - Sau khi terminal hiển thị `Server is listening on port 5000` -> Mở đường link với URL: [http://localhost:5000/api-docs](http://localhost:5000/api-docs/) để xem các API
+
+### 3. Các API hiện tại
+- Loại bệnh
+- Tham số
+- Bệnh nhân
+- Chức năng
+- Nhóm người dùng
+
 ## QUY TẮC LÀM VIỆC TRÊN GITHUB
 - Trước khi bắt đầu làm, đọc kĩ quy trình làm việc với Git & GitHub [tại đây](https://www.figma.com/board/sAU9OhFxPQCTKGghPKQqbF/Quy-tr%C3%ACnh-Git-%26-GitHub?node-id=0-1&t=GYFBeSfRyeSQG1Zb-1).
 - Chỉ commit khi hoàn thành 1 chức năng/ bug nào đó, không commit khi đang làm dở, không commit dồn.

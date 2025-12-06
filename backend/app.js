@@ -6,6 +6,9 @@ const swaggerSpec = require('./docs/swagger');
 const argumentRouter = require('./routers/argument_router');
 const usageRouter = require('./routers/usage_router');
 const diseaseRouter = require('./routers/disease_router');
+const patientRouter = require('./routers/patient_router');
+const functionRouter = require('./routers/function_router');
+const groupUserRouter = require('./routers/groupuser_router');
 
 const app = express();
 app.use(body_parser.json());
@@ -17,5 +20,11 @@ app.use('/api/argument', argumentRouter);
 app.use('api/usage', usageRouter);
 
 app.use('/api/disease', diseaseRouter);
+
+app.use('/api/patient', patientRouter);
+
+app.use('/api/function', functionRouter);
+
+app.use('/api/groupUser', groupUserRouter);
 
 module.exports = app;

@@ -1,23 +1,26 @@
 const UsageService = require('../services/usage_service');
 
-// Tạo cách dùng
+// Tạo cách dùng mới
 exports.createUsage = async (req, res) => {
     try {
         const {
-            ma_cach_dung,
-            ten_cach_dung
+            TenCachDung
         } = req.body;
+        // Kiểm tra cách dùng đã tồn tại trong db hay chưa
+        const existed = await UsageService.existedUsage(TenCachDung);
+        if (existed) {
+            res.status(409).json({message: "Tên cách dùng đã tồn tại"});
+        }
+        const data = { TenCachDung }
+        const addUsage = await UsageService.createUsage(data);
 
-        const data = { ma_cach_dung, ten_cach_dung };
-        const record = await UsageService.createUsage(data);
-
-        if (!record) {
-            return res.status(400).json({ error: 'Không thể tạo cách dùng' });
+        if (!addUsage) {
+            res.status(500).json({ error: 'Internal Server Error' });
         }
 
         res.status(201).json({
-            MaCachDung: record.MaCachDung,
-            TenCachDung: record.TenCachDung
+            MaCachDung: addUsage.MaCachDung,
+            TenCachDung: addUsage.TenCachDung
         });
     } 
     catch (error) {
@@ -29,11 +32,11 @@ exports.createUsage = async (req, res) => {
 // Lấy danh sách tất cả cách dùng
 exports.getUsage = async (req, res) => {
     try {
-        const records = await UsageService.getUsage();
-        res.status(200).json(records);
+        const rows = await UsageService.getUsage();
+        res.status(200).json(rows).end();
     } 
     catch (error) {
-        console.error('Error getUsage:', error);
+        console.error('Error getDSCachDung:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
@@ -41,19 +44,20 @@ exports.getUsage = async (req, res) => {
 // Cập nhật cách dùng
 exports.updateUsage = async (req, res) => {
     try {
-        const { ma_cach_dung, ten_cach_dung } = req.body;
+        const { MaCachDung } = req.params;
+        const { TenCachDung } = req.body;
+        const updateData = { TenCachDung }
 
-        if (!ma_cach_dung || !ten_cach_dung) {
-            return res.status(400).json({ error: 'Thiếu dữ liệu cập nhật' });
+        const result = await UsageService.updateUsage({ MaCachDung, updateData });
+        
+        if (result === null) {
+            return res.status(500).json({error: 'Internal Server Error'});        
         }
-
-        const updated = await UsageService.updateUsage({ ma_cach_dung, ten_cach_dung });
-
-        if (!updated) {
+        if (result === false) {
             return res.status(404).json({ error: 'Không tìm thấy cách dùng để cập nhật' });
         }
 
-        res.status(200).json({ message: 'Cập nhật thành công' });
+        return res.status(200).json({ message: 'Cập nhật thành công' });
     } 
     catch (error) {
         console.error('Error updateUsage:', error);
@@ -64,19 +68,21 @@ exports.updateUsage = async (req, res) => {
 // Xóa cách dùng
 exports.deleteUsage = async (req, res) => {
     try {
-        const { ma_cach_dung } = req.params;
+        const { MaCachDung } = req.params;
 
-        if (!ma_cach_dung) {
+        if (!MaCachDung) {
             return res.status(400).json({ error: 'Thiếu mã cách dùng cần xóa' });
         }
 
-        const deleted = await UsageService.deleteUsage(ma_cach_dung);
+        const result = await UsageService.deleteUsage(MaCachDung);
 
-        if (!deleted) {
+        if (result === null) {
+            return res.status(500).json({error: 'Internal Server Error'});
+        }
+        if (result === false) {
             return res.status(404).json({ error: 'Không tìm thấy cách dùng để xóa' });
         }
-
-        res.status(200).json({ message: 'Xóa thành công' });
+        return res.status(200).json({ message: 'Xóa thành công' });
     } 
     catch (error) {
         console.error('Error deleteUsage:', error);
