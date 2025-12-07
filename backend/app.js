@@ -4,6 +4,7 @@ const body_parser = require("body-parser");
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
 const argumentRouter = require('./routers/argument_router');
+const usageRouter = require('./routers/usage_router');
 const diseaseRouter = require('./routers/disease_router');
 const patientRouter = require('./routers/patient_router');
 const functionRouter = require('./routers/function_router');
@@ -16,6 +17,7 @@ app.use(body_parser.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));  
 
 app.use('/api/argument', argumentRouter);
+app.use('/api/usage', usageRouter);
 
 app.use('/api/disease', diseaseRouter);
 
