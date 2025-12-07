@@ -17,7 +17,7 @@ app.use(body_parser.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));  
 
 app.use('/api/argument', argumentRouter);
-app.use('api/usage', usageRouter);
+app.use('/api/usage', usageRouter);
 
 app.use('/api/disease', diseaseRouter);
 

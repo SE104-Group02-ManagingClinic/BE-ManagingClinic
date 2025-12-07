@@ -9,7 +9,7 @@ class UsageService {
             } = data;
 
             // Lấy MaCachDung cuối cùng
-            const [rows] = await db.querry(
+            const [rows] = await db.query(
                 "select MaCachDung from CACHDUNG order by MaCachDung desc limit 1"
             );
 
@@ -108,9 +108,9 @@ class UsageService {
         if (lastId === "") {
             return "CD001";
         }
-        const id = parseInt(id.slice(1), 10) + 1;
+        const id = parseInt(lastID.slice(2), 10) + 1;
 
-        const newId = "C" + id.toString().padStart(4, "0");
+        const newId = "CD" + id.toString().padStart(3, "0");
         return newId;
     }
 }

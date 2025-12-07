@@ -9,7 +9,7 @@ exports.createUsage = async (req, res) => {
         // Kiểm tra cách dùng đã tồn tại trong db hay chưa
         const existed = await UsageService.existedUsage(TenCachDung);
         if (existed) {
-            res.status(409).json({message: "Tên cách dùng đã tồn tại"});
+            return res.status(409).json({message: "Tên cách dùng đã tồn tại"});
         }
         const data = { TenCachDung }
         const addUsage = await UsageService.createUsage(data);
@@ -48,7 +48,7 @@ exports.updateUsage = async (req, res) => {
         const { TenCachDung } = req.body;
         const updateData = { TenCachDung }
 
-        const result = await UsageService.updateUsage({ MaCachDung, updateData });
+        const result = await UsageService.updateUsage(MaCachDung, updateData);
         
         if (result === null) {
             return res.status(500).json({error: 'Internal Server Error'});        
