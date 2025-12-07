@@ -98,7 +98,7 @@ router.post("/createFunction", functionController.createFunction);
  *                 properties:
  *                   MaChucNang:
  *                     type: string
- *                     example: "FUNC001"
+ *                     example: "CN001"
  *                   TenChucNang:
  *                     type: string
  *                     example: "Quản lý người dùng"
@@ -158,7 +158,7 @@ router.get("/getFunctionById/:MaChucNang", functionController.getFunctionById);
  *                 properties:
  *                   MaChucNang:
  *                     type: string
- *                     example: "FUNC001"
+ *                     example: "CN001"
  *                   TenChucNang:
  *                     type: string
  *                     example: "Quản lý người dùng"
@@ -198,7 +198,7 @@ router.get("/getAllFunctions", functionController.getAllFunctions);
  *                 properties:
  *                   MaChucNang:
  *                     type: string
- *                     example: "FUNC001"
+ *                     example: "CN001"
  *                   TenChucNang:
  *                     type: string
  *                     example: "Quản lý người dùng"

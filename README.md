@@ -32,6 +32,7 @@ node index.js
 - Chức năng
 - Nhóm người dùng
 - Người dùng
+- Phân quyền
 - Cách dùng (thuốc)
 
 ## QUY TẮC LÀM VIỆC TRÊN GITHUB
