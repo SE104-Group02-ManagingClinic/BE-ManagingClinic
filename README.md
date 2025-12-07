@@ -31,6 +31,8 @@ node index.js
 - Bệnh nhân
 - Chức năng
 - Nhóm người dùng
+- Người dùng
+- Cách dùng (thuốc)
 
 ## QUY TẮC LÀM VIỆC TRÊN GITHUB
 - Trước khi bắt đầu làm, đọc kĩ quy trình làm việc với Git & GitHub [tại đây](https://www.figma.com/board/sAU9OhFxPQCTKGghPKQqbF/Quy-tr%C3%ACnh-Git-%26-GitHub?node-id=0-1&t=GYFBeSfRyeSQG1Zb-1).
