@@ -22,7 +22,8 @@ class GroupUserService {
         if (lastId === "") {
             return "GR001";
         }
-        const id = parseInt(id.slice(1), 10) + 1;
+        const id = parseInt(lastId.slice(2), 10) + 1;
+
 
         const newId = "GR" + id.toString().padStart(3, "0");
         return newId;

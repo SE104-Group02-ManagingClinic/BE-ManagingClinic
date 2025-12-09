@@ -66,7 +66,7 @@ class PatientService {
         if (lastId === "") {
             return "BN001";
         }
-        const id = parseInt(id.slice(1), 10) + 1;
+        const id = parseInt(lastId.slice(2), 10) + 1;
 
         const newId = "BN" + id.toString().padStart(3, "0");
         return newId;
