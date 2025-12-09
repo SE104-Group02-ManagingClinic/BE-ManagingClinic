@@ -25,15 +25,26 @@ node index.js
 ```
 - Sau khi terminal hiển thị `Server is listening on port 5000` -> Mở đường link với URL: [http://localhost:5000/api-docs](http://localhost:5000/api-docs/) để xem các API
 
-### 3. Các API hiện tại
-- Loại bệnh
-- Tham số
-- Bệnh nhân
-- Chức năng
-- Nhóm người dùng
-- Người dùng
-- Phân quyền
-- Cách dùng (thuốc)
+### 3. Các API 
+- [x] Loại bệnh
+- [x] Tham số
+- [x] Bệnh nhân
+- [x] Chức năng
+- [x] Nhóm người dùng
+- [x] Người dùng
+- [x] Phân quyền
+- [x] Cách dùng (thuốc)
+- [ ] Loại thuốc
+- [ ] Đơn vị tính
+- [ ] Phiếu nhập thuốc
+- [ ] CT báo cáo sử dụng thuốc
+- [ ] Báo cáo sử dụng thuốc
+- [ ] CT thuốc
+- [ ] CT bệnh
+- [ ] Phiếu khám bệnh
+- [ ] Hóa đơn thanh toán
+- [ ] Báo cáo doanh thu
+- [ ] Chi tiết báo cáo doanh thu
 
 ## QUY TẮC LÀM VIỆC TRÊN GITHUB
 - Trước khi bắt đầu làm, đọc kĩ quy trình làm việc với Git & GitHub [tại đây](https://www.figma.com/board/sAU9OhFxPQCTKGghPKQqbF/Quy-tr%C3%ACnh-Git-%26-GitHub?node-id=0-1&t=GYFBeSfRyeSQG1Zb-1).
