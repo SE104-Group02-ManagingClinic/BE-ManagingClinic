@@ -146,7 +146,7 @@ class DiseaseService {
         if (lastId === "") {
             return "B0001";
         }
-        const id = parseInt(id.slice(1), 10) + 1;
+        const id = parseInt(lastId.slice(1), 10) + 1;
 
         const newId = "B" + id.toString().padStart(4, "0");
         return newId;
