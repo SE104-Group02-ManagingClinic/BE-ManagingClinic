@@ -11,6 +11,7 @@ const functionRouter = require('./routers/function_router');
 const groupUserRouter = require('./routers/groupuser_router');
 const userRouter = require('./routers/user_router');
 const permissionRouter = require('./routers/permission_router');
+const unitRouter = require('./routers/unit_router');
 
 const app = express();
 app.use(body_parser.json());
@@ -33,5 +34,7 @@ app.use('/api/groupUser', groupUserRouter);
 app.use('/api/user', userRouter);
 
 app.use('/api/permission', permissionRouter);
+
+app.use('/api/unit', unitRouter);
 
 module.exports = app;
