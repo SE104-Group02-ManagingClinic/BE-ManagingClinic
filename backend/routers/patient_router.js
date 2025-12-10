@@ -190,7 +190,7 @@ router.get('/searchPatient/:cccd', patientController.searchPatient);
 /**
  * @swagger
  * /patient/updatePatient/{MaBN}:
- *   post:
+ *   put:
  *     summary: Cập nhật thông tin bệnh nhân
  *     description: API cập nhật thông tin bệnh nhân theo mã bệnh nhân (MaBN).
  *     tags:
@@ -261,7 +261,7 @@ router.get('/searchPatient/:cccd', patientController.searchPatient);
  *                   type: string
  *                   example: "Internal Server Error"
  */
-router.post('/updatePatient/:MaBN', patientController.updatePatient);
+router.put('/updatePatient/:MaBN', patientController.updatePatient);
 
 /**
  * @swagger
