@@ -44,6 +44,7 @@ exports.createPatient = async (req, res) => {
     }
 }
 
+
 // Tra cuu benh nhan
 exports.searchPatient = async (req, res) => {
     try {
@@ -63,6 +64,17 @@ exports.searchPatient = async (req, res) => {
     catch (error) {
         console.error("Error searchPatient: ", error);
         res.status(500).json({error: 'Internal Server Error'});
+    }
+}
+
+exports.getAllPatients = async (req, res) => {
+    try {
+        const rows = await PatientService.getAllPatients();
+        res.status(200).json(rows);
+    }
+    catch (error) {
+        res.status(500).json({error: 'Internal Server Error'});
+        console.error('Error getAllPatients: ', error);
     }
 }
 

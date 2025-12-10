@@ -187,6 +187,59 @@ router.post('/createPatient', patientController.createPatient);
  *                   example: "Internal Server Error"
  */
 router.get('/searchPatient/:cccd', patientController.searchPatient);
+
+/**
+ * @swagger
+ * /patient/getAllPatients:
+ *   get:
+ *     summary: Lấy danh sách tất cả bệnh nhân
+ *     description: API trả về danh sách toàn bộ bệnh nhân trong hệ thống.
+ *     tags:
+ *       - Patient
+ *     responses:
+ *       200:
+ *         description: Thành công - trả về danh sách bệnh nhân
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   MaBN:
+ *                     type: string
+ *                     example: "BN001"
+ *                   HoTen:
+ *                     type: string
+ *                     example: "Nguyễn Văn A"
+ *                   CCCD:
+ *                     type: string
+ *                     example: "012345678901"
+ *                   GioiTinh:
+ *                     type: string
+ *                     example: "Nam"
+ *                   NamSinh:
+ *                     type: string
+ *                     format: date
+ *                     example: "1990-05-20"
+ *                   DiaChi:
+ *                     type: string
+ *                     example: "123 Lê Lợi, Quận 1, TP.HCM"
+ *                   SDT:
+ *                     type: string
+ *                     example: "0912345678"
+ *       500:
+ *         description: Lỗi hệ thống
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
+ */
+router.get('/getAllPatients', patientController.getAllPatients);
 /**
  * @swagger
  * /patient/updatePatient/{MaBN}:
