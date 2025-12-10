@@ -167,7 +167,7 @@ router.get('/getAllGroupUsers', groupUserController.getAllGroupUsers);
 /**
  * @swagger
  * /groupUser/updateGroupUser/{MaNhom}:
- *   post:
+ *   put:
  *     summary: Cập nhật nhóm người dùng theo mã
  *     description: API dùng để cập nhật thông tin nhóm người dùng dựa trên mã `MaNhom`.
  *     tags:
@@ -221,7 +221,7 @@ router.get('/getAllGroupUsers', groupUserController.getAllGroupUsers);
  *                   type: string
  *                   example: "Internal Server Error"
  */
-router.post('/updateGroupUser/:MaNhom', groupUserController.updateGroupUser);
+router.put('/updateGroupUser/:MaNhom', groupUserController.updateGroupUser);
 
 /**
  * @swagger

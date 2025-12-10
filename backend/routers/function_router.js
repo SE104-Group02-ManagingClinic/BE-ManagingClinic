@@ -218,7 +218,7 @@ router.get("/getFunctionNameList", functionController.getFunctionNameList);
 /**
  * @swagger
  * /function/updateFunction/{MaChucNang}:
- *   post:
+ *   put:
  *     summary: Cập nhật chức năng theo mã
  *     description: API dùng để cập nhật thông tin chức năng dựa trên mã `MaChucNang`.
  *     tags:
@@ -275,7 +275,7 @@ router.get("/getFunctionNameList", functionController.getFunctionNameList);
  *                   type: string
  *                   example: "Internal Server Error"
  */
-router.post("/updateFunction/:MaChucNang", functionController.updateFunction);
+router.put("/updateFunction/:MaChucNang", functionController.updateFunction);
 
 /**
  * @swagger
