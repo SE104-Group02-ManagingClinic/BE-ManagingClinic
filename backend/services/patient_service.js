@@ -86,6 +86,18 @@ class PatientService {
         }
     }
 
+    static async getAllPatients() {
+        try {
+            const [rows] = await db.query(
+                "select * from BENHNHAN"
+            );
+            return rows;
+        }
+        catch (error) {
+            console.log("PatientService getAllPatients Error:", error);
+        }
+    }
+
     // Cap nhap thong tin benh nhan theo MaBN
     static async updatePatient(MaBN, updateData) {
         try {
