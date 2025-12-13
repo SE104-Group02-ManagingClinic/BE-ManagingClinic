@@ -76,7 +76,7 @@ CREATE TABLE LOAITHUOC (
 
 -- Bảng Phiếu Khám Bệnh (Chứa thông tin khám bệnh tổng quát)
 CREATE TABLE PHIEUKHAMBENH (
-    MaPKB VARCHAR(5) PRIMARY KEY,
+    MaPKB VARCHAR(8) PRIMARY KEY,
     MaBN VARCHAR(5), -- Khóa ngoại từ BENHNHAN
     NgayKham DATE,
     TrieuChung TEXT,
@@ -86,7 +86,7 @@ CREATE TABLE PHIEUKHAMBENH (
 
         -- Bảng Chi Tiết Bệnh của Phiếu Khám Bệnh (Nhiều bệnh trong 1 lần khám)
 CREATE TABLE CT_BENH (
-    MaPKB VARCHAR(10),
+    MaPKB VARCHAR(8),
     MaBenh VARCHAR(5),
     PRIMARY KEY (MaPKB, MaBenh),
     FOREIGN KEY (MaPKB) REFERENCES PHIEUKHAMBENH(MaPKB),
@@ -96,7 +96,7 @@ CREATE TABLE CT_BENH (
         -- Bảng Chi Tiết Thuốc trong Phiếu Khám Bệnh (Đơn thuốc)
 CREATE TABLE CT_THUOC (
     MaThuoc VARCHAR(5),
-    MaPKB VARCHAR(5),
+    MaPKB VARCHAR(8),
     SoLuong INT,
     DonGiaBan INT,
     ThanhTien INT,
