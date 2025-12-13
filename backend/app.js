@@ -12,6 +12,7 @@ const groupUserRouter = require('./routers/groupuser_router');
 const userRouter = require('./routers/user_router');
 const permissionRouter = require('./routers/permission_router');
 const unitRouter = require('./routers/unit_router');
+const medicalExamFormRouter = require('./routers/medical_exam_form_router');
 
 const app = express();
 app.use(body_parser.json());
@@ -36,5 +37,7 @@ app.use('/api/user', userRouter);
 app.use('/api/permission', permissionRouter);
 
 app.use('/api/unit', unitRouter);
+
+app.use('/api/medicalExamForm', medicalExamFormRouter);
 
 module.exports = app;
