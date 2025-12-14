@@ -14,6 +14,7 @@ const userRouter = require('./routers/user_router');
 const permissionRouter = require('./routers/permission_router');
 const unitRouter = require('./routers/unit_router');
 const medicineRouter = require('./routers/medicine_router');
+const medicineImportRouter = require('./routers/medicineImport_router');
 const medicalExamFormRouter = require('./routers/medical_exam_form_router');
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/user', userRouter);
 app.use('/api/permission', permissionRouter);
 app.use('/api/unit', unitRouter);
 app.use('/api/medicine', medicineRouter);
+app.use('/api/medicineImport', medicineImportRouter);
 app.use('/api/medicalExamForm', medicalExamFormRouter);
 
 module.exports = app;
