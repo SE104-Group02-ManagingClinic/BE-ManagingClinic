@@ -3,6 +3,7 @@ const express = require('express');
 const body_parser = require("body-parser");
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
+
 const argumentRouter = require('./routers/argument_router');
 const usageRouter = require('./routers/usage_router');
 const diseaseRouter = require('./routers/disease_router');
@@ -12,6 +13,8 @@ const groupUserRouter = require('./routers/groupuser_router');
 const userRouter = require('./routers/user_router');
 const permissionRouter = require('./routers/permission_router');
 const unitRouter = require('./routers/unit_router');
+const medicineRouter = require('./routers/medicine_router');
+const medicineImportRouter = require('./routers/medicineImport_router');
 const medicalExamFormRouter = require('./routers/medical_exam_form_router');
 
 const app = express();
@@ -21,23 +24,16 @@ app.use(body_parser.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));  
 
 app.use('/api/argument', argumentRouter);
-
 app.use('/api/usage', usageRouter);
-
 app.use('/api/disease', diseaseRouter);
-
 app.use('/api/patient', patientRouter);
-
 app.use('/api/function', functionRouter);
-
 app.use('/api/groupUser', groupUserRouter);
-
 app.use('/api/user', userRouter);
-
 app.use('/api/permission', permissionRouter);
-
 app.use('/api/unit', unitRouter);
-
+app.use('/api/medicine', medicineRouter);
+app.use('/api/medicineImport', medicineImportRouter);
 app.use('/api/medicalExamForm', medicalExamFormRouter);
 
 module.exports = app;
