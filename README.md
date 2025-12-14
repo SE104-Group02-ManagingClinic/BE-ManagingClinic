@@ -34,9 +34,9 @@ node index.js
 - [x] Người dùng
 - [x] Phân quyền
 - [x] Cách dùng (thuốc)
-- [ ] Loại thuốc
+- [x] Loại thuốc
 - [x] Đơn vị tính
-- [ ] Phiếu nhập thuốc
+- [x] Phiếu nhập thuốc
 - [ ] CT báo cáo sử dụng thuốc
 - [ ] Báo cáo sử dụng thuốc
 - [x] CT thuốc
