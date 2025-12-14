@@ -124,7 +124,7 @@
 
             -- Bảng Báo Cáo Sử Dụng Thuốc (Tổng hợp)
     CREATE TABLE BAOCAOSUDUNGTHUOC (
-        MaBCSDT VARCHAR(5),
+        MaBCSDT VARCHAR(8),
         Thang INT,
         Nam INT,
         PRIMARY KEY(MaBCSDT, Thang, Nam)
@@ -132,7 +132,7 @@
 
             -- Bảng Chi Tiết Báo Cáo Sử Dụng Thuốc
     CREATE TABLE CT_BCSDT (
-        MaBCSDT VARCHAR(5),
+        MaBCSDT VARCHAR(8),
         MaThuoc VARCHAR(5),
         SoLanDung INT,
         SoLuongDung INT,
@@ -154,7 +154,7 @@
 
             -- Bảng Báo Cáo Doanh Thu (Tổng hợp)
     CREATE TABLE BAOCAODOANHTHU (
-        MaBCDT VARCHAR(6) PRIMARY KEY,
+        MaBCDT VARCHAR(8) PRIMARY KEY,
         THANG INT,
         NAM INT,
         TongDoanhThu INT
@@ -162,7 +162,7 @@
 
             -- Bảng Chi Tiết Báo Cáo Doanh Thu (Chi tiết theo từng hóa đơn, loại dịch vụ/thuốc...)
     CREATE TABLE CT_BCDT (
-        MaBCDT VARCHAR(6),
+        MaBCDT VARCHAR(8),
         Ngay    DATE,
         SoBenhNhan INT,
         DOANHTHU INT,
@@ -170,4 +170,3 @@
         PRIMARY KEY (MaBCDT, Ngay),
         FOREIGN KEY (MaBCDT) REFERENCES BAOCAODOANHTHU(MaBCDT)
     );
-            
