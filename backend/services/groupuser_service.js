@@ -36,7 +36,7 @@ class GroupUserService {
                 TenNhom
             } = data;
             
-            // Lay ma chuc nang cuoi cung
+            // Lay ma nhom nguoi dung cuoi cung
             const [rows] = await db.query(
                 "select MaNhom from NHOMNGUOIDUNG order by MaNhom desc limit 1"
             );

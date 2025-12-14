@@ -35,13 +35,13 @@ node index.js
 - [x] Phân quyền
 - [x] Cách dùng (thuốc)
 - [ ] Loại thuốc
-- [ ] Đơn vị tính
+- [x] Đơn vị tính
 - [ ] Phiếu nhập thuốc
 - [ ] CT báo cáo sử dụng thuốc
 - [ ] Báo cáo sử dụng thuốc
-- [ ] CT thuốc
-- [ ] CT bệnh
-- [ ] Phiếu khám bệnh
+- [x] CT thuốc
+- [x] CT bệnh
+- [x] Phiếu khám bệnh
 - [ ] Hóa đơn thanh toán
 - [ ] Báo cáo doanh thu
 - [ ] Chi tiết báo cáo doanh thu

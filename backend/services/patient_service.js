@@ -61,6 +61,20 @@ class PatientService {
             console.log("PatientService existedPatient Error: ", error);
         }
     }
+
+    // Kiểm tra bệnh nhân theo MaBN
+    static async existedPatientById(MaBN) {
+        try {
+            const [rows] = await db.query(
+                "SELECT MaBN FROM BENHNHAN WHERE MaBN = ?",
+                [MaBN]
+            );
+            return rows.length > 0; // true nếu tìm thấy, false nếu không
+        } catch (error) {
+            console.log("PatientService existedPatient Error: ", error);
+            return false;
+        }
+    }
     // Tạo mã bệnh nhân mới
     static createId(lastId) {
         if (lastId === "") {
@@ -75,11 +89,52 @@ class PatientService {
     // Tim kiem benh nhan theo cccd
     static async searchPatient(cccd) {
         try {
-            const [rows] = await db.query(
-                "select *from BENHNHAN where CCCD like ?",
-                [cccd]
-            );
-            return rows;
+            // Lấy thông tin bệnh nhân
+        const [patients] = await db.query(
+            "SELECT * FROM BENHNHAN WHERE CCCD = ?",
+            [cccd]
+        );
+
+        if (patients.length === 0) {
+            return null; // Không tìm thấy bệnh nhân
+        }
+
+        const patient = patients[0];
+
+        // Lấy danh sách phiếu khám bệnh kèm loại bệnh và triệu chứng, sắp xếp theo ngày gần nhất
+        const [records] = await db.query(
+            `SELECT pkb.MaPKB, pkb.NgayKham, b.TenBenh, pkb.TrieuChung
+             FROM PHIEUKHAMBENH pkb
+             LEFT JOIN CT_BENH ct ON pkb.MaPKB = ct.MaPKB
+             LEFT JOIN BENH b ON ct.MaBenh = b.MaBenh
+             WHERE pkb.MaBN = ?
+             ORDER BY pkb.NgayKham DESC`,
+            [patient.MaBN]
+        );
+
+        // Gom nhóm các bệnh theo từng phiếu khám
+        const groupedRecords = records.reduce((acc, row) => {
+            let record = acc.find(r => r.MaPKB === row.MaPKB);
+            if (!record) {
+                record = {
+                    MaPKB: row.MaPKB,
+                    NgayKham: row.NgayKham,
+                    TrieuChung: row.TrieuChung,
+                    Benh: []
+                };
+                acc.push(record);
+            }
+            if (row.TenBenh) {
+                record.Benh.push(row.TenBenh);
+            }
+            return acc;
+        }, []);
+
+        return {
+            ...patient,
+            PhieuKhamBenh: groupedRecords
+        };
+
         }
         catch (error) {
             console.log("PatientService searchPatient Error:", error);

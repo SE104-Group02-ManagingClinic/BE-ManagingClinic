@@ -109,10 +109,10 @@ router.post('/createPatient', patientController.createPatient);
 
 /**
  * @swagger
- * /patient/searchPatient/{cccd}:
+ * /searchPatient/{cccd}:
  *   get:
- *     summary: Tra cứu thông tin bệnh nhân
- *     description: API tra cứu bệnh nhân theo số CCCD.
+ *     summary: Tra cứu bệnh nhân theo CCCD
+ *     description: API dùng để tra cứu thông tin bệnh nhân theo số CCCD. Kết quả trả về bao gồm thông tin bệnh nhân và danh sách phiếu khám bệnh kèm loại bệnh, triệu chứng.
  *     tags:
  *       - Patient
  *     parameters:
@@ -121,42 +121,60 @@ router.post('/createPatient', patientController.createPatient);
  *         required: true
  *         schema:
  *           type: string
- *           example: "012345678901"
  *         description: Số CCCD của bệnh nhân
+ *         example: "012345678901"
  *     responses:
  *       200:
- *         description: Thông tin bệnh nhân tìm thấy
+ *         description: Thành công - trả về thông tin bệnh nhân và danh sách phiếu khám bệnh
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   MaBN:
- *                     type: string
- *                     example: "BN001"
- *                   HoTen:
- *                     type: string
- *                     example: "Nguyen Van A"
- *                   CCCD:
- *                     type: string
- *                     example: "012345678901"
- *                   GioiTinh:
- *                     type: string
- *                     example: "Nam"
- *                   NamSinh:
- *                     type: string
- *                     format: date
- *                     example: "1990-01-01"
- *                   DiaChi:
- *                     type: string
- *                     example: "123 Đường ABC, Quận 1, TP.HCM"
- *                   SDT:
- *                     type: string
- *                     example: "0901234567"
+ *               type: object
+ *               properties:
+ *                 MaBN:
+ *                   type: string
+ *                   example: "BN001"
+ *                 HoTen:
+ *                   type: string
+ *                   example: "Nguyễn Văn A"
+ *                 CCCD:
+ *                   type: string
+ *                   example: "012345678901"
+ *                 GioiTinh:
+ *                   type: string
+ *                   example: "Nam"
+ *                 NamSinh:
+ *                   type: string
+ *                   format: date
+ *                   example: "1990-05-20"
+ *                 DiaChi:
+ *                   type: string
+ *                   example: "123 Lê Lợi, Quận 1, TP.HCM"
+ *                 SDT:
+ *                   type: string
+ *                   example: "0912345678"
+ *                 PhieuKhamBenh:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       MaPKB:
+ *                         type: string
+ *                         example: "PKB001"
+ *                       NgayKham:
+ *                         type: string
+ *                         format: date
+ *                         example: "2025-12-13"
+ *                       TrieuChung:
+ *                         type: string
+ *                         example: "Ho, sốt, đau đầu"
+ *                       Benh:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                           example: "Cúm"
  *       400:
- *         description: Thiếu hoặc rỗng CCCD
+ *         description: CCCD rỗng hoặc không hợp lệ
  *         content:
  *           application/json:
  *             schema:
@@ -176,7 +194,7 @@ router.post('/createPatient', patientController.createPatient);
  *                   type: string
  *                   example: "Not found."
  *       500:
- *         description: Lỗi hệ thống
+ *         description: Lỗi hệ thống hoặc truy vấn thất bại
  *         content:
  *           application/json:
  *             schema:
