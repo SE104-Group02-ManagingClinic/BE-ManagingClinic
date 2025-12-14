@@ -17,6 +17,7 @@ const medicineRouter = require('./routers/medicine_router');
 const medicineImportRouter = require('./routers/medicineImport_router');
 const medicalExamFormRouter = require('./routers/medical_exam_form_router');
 const medicineUsageReport = require('./routers/medicineUsageReport_router');
+const revenueReport = require('./routers/revenueReport_router');
 
 const app = express();
 app.use(body_parser.json());
@@ -37,5 +38,6 @@ app.use('/api/medicine', medicineRouter);
 app.use('/api/medicineImport', medicineImportRouter);
 app.use('/api/medicalExamForm', medicalExamFormRouter);
 app.use('/api/medicineUsageReport', medicineUsageReport);
+app.use('/api/revenueReport', revenueReport);
 
 module.exports = app;
