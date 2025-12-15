@@ -5,43 +5,64 @@ class MedicineImportService {
     // Tạo phiếu nhập thuốc
     static async createMedicineImport(data) {
         try {
-            const {
-                MaThuoc,
-                GiaNhap,
-                NgayNhap,
-                SoLuongNhap
-            } = data;
+            const { MaThuoc, GiaNhap, NgayNhap, SoLuongNhap } = data;
 
-            // Lấy mã PNT cuối
-            const [rows] = await db.query(
-                "SELECT MaPNT FROM PHIEUNHAPTHUOC ORDER BY CAST(SUBSTRING(MaPNT, 4) AS UNSIGNED) DESC LIMIT 1"
+            // Kiểm tra thuốc tồn tại
+            const [[thuoc]] = await db.query(
+                "SELECT SoLuongTon FROM LOAITHUOC WHERE MaThuoc = ?",
+                [MaThuoc]
             );
 
-            let lastId = "";
-            if (rows.length > 0) lastId = rows[0].MaPNT;
+            if (!thuoc) {
+                await db.rollback();
+                return { error: "MEDICINE_NOT_FOUND" };
+            }
 
-            const nextId = this.createId(lastId);
+            // Lấy tỉ lệ tính đơn giá bán
+            const [[thamSo]] = await db.query(
+                "SELECT TiLeTinhDonGiaBan FROM THAMSO LIMIT 1"
+            );
 
-            const record = {
-                MaPNT: nextId,
-                MaThuoc,
-                GiaNhap,
-                NgayNhap,
-                SoLuongNhap
-            };
+            if (!thamSo) {
+                await db.rollback();
+                return { error: "NO_THAMSO" };
+            }
 
+            const TiLe = thamSo.TiLeTinhDonGiaBan;
+
+            // Tính giá bán mới
+            const GiaBanMoi = Math.round(GiaNhap * TiLe);
+
+            // Sinh mã phiếu nhập
+            const [[row]] = await db.query(
+                "SELECT MaPNT FROM PHIEUNHAPTHUOC ORDER BY MaPNT DESC LIMIT 1"
+            );
+
+            let MaPNT = "PNT001";
+            if (row) {
+                const num = parseInt(row.MaPNT.slice(3)) + 1;
+                MaPNT = "PNT" + num.toString().padStart(3, "0");
+            }
+
+            // Insert phiếu nhập
             await db.query(
-                "INSERT INTO PHIEUNHAPTHUOC SET ?",
-                [record]
+                `INSERT INTO PHIEUNHAPTHUOC
+                (MaPNT, MaThuoc, GiaNhap, NgayNhap, SoLuongNhap)
+                VALUES (?, ?, ?, ?, ?)`,
+                [MaPNT, MaThuoc, GiaNhap, NgayNhap, SoLuongNhap]
             );
 
-            // Cập nhật tồn kho thuốc
+            // Cập nhật tồn kho + giá bán
             await db.query(
-                "UPDATE LOAITHUOC SET SoLuongTon = SoLuongTon + ? WHERE MaThuoc = ?",
-                [SoLuongNhap, MaThuoc]
+                `UPDATE LOAITHUOC
+                SET 
+                    SoLuongTon = SoLuongTon + ?,
+                    GiaBan = ?
+                WHERE MaThuoc = ?`,
+                [SoLuongNhap, GiaBanMoi, MaThuoc]
             );
 
-            return record;
+            return { MaPNT, MaThuoc, GiaNhap, NgayNhap, SoLuongNhap, GiaBanMoi };
         }
         catch (error) {
             console.log("MedicineImportService create Error:", error);
@@ -70,25 +91,69 @@ class MedicineImportService {
     // Cập nhật phiếu nhập thuốc
     static async updateMedicineImport(MaPNT, updateData) {
         try {
+
             const {
-                MaThuoc,
                 GiaNhap,
                 NgayNhap,
                 SoLuongNhap
             } = updateData;
 
+            // Lấy phiếu nhập cũ
+            const [[oldPNT]] = await db.query(
+                `
+                SELECT MaThuoc, SoLuongNhap
+                FROM PHIEUNHAPTHUOC
+                WHERE MaPNT = ?
+                `,
+                [MaPNT]
+            );
+
+            if (!oldPNT) {
+                await db.rollback();
+                return false; // không tìm thấy phiếu nhập
+            }
+
+            const MaThuoc = oldPNT.MaThuoc;
+
+            // Tính chênh lệch số lượng
+            const delta = SoLuongNhap - oldPNT.SoLuongNhap;
+
+            // Kiểm tra tồn kho không âm
+            const [[thuoc]] = await db.query(
+                `
+                SELECT SoLuongTon
+                FROM LOAITHUOC
+                WHERE MaThuoc = ?
+                `,
+                [MaThuoc]
+            );
+
+            if (!thuoc || thuoc.SoLuongTon + delta < 0) {
+                await db.rollback();
+                return { error: "INVALID_STOCK" };
+            }
+
+            // Cập nhật tồn kho (CHỈ BÙ TRỪ)
+            await db.query(
+                `
+                UPDATE LOAITHUOC
+                SET SoLuongTon = SoLuongTon + ?
+                WHERE MaThuoc = ?
+                `,
+                [delta, MaThuoc]
+            );
+
+            // Cập nhật phiếu nhập (KHÔNG đổi MaThuoc)
             const [rows] = await db.query(
                 `
                 UPDATE PHIEUNHAPTHUOC
                 SET
-                    MaThuoc = ?,
                     GiaNhap = ?,
                     NgayNhap = ?,
                     SoLuongNhap = ?
                 WHERE MaPNT = ?
                 `,
                 [
-                    MaThuoc,
                     GiaNhap,
                     NgayNhap,
                     SoLuongNhap,
@@ -96,14 +161,20 @@ class MedicineImportService {
                 ]
             );
 
-            if (rows.affectedRows === 0) return false;
+            if (rows.affectedRows === 0) {
+                await db.rollback();
+                return false;
+            }
+
             return true;
         }
         catch (error) {
+            await db.rollback();
             console.log("MedicineImportService update Error:", error);
             return null;
         }
     }
+
 
     // Xóa phiếu nhập thuốc
     static async deleteMedicineImport(MaPNT) {
@@ -129,14 +200,6 @@ class MedicineImportService {
             [MaThuoc]
         );
         return !!row;
-    }
-
-    // Tạo mã PNT mới (PNT001 → PNT999)
-    static createId(lastId) {
-        if (!lastId) return "PNT001";
-
-        const number = parseInt(lastId.slice(3), 10) + 1;
-        return "PNT" + number.toString().padStart(3, "0");
     }
 }
 
