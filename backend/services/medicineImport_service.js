@@ -4,29 +4,27 @@ class MedicineImportService {
 
     // Tạo phiếu nhập thuốc
     static async createMedicineImport(data) {
-        const conn = await db.getConnection(); 
         try {
-            await conn.beginTransaction(); 
             const { MaThuoc, GiaNhap, NgayNhap, SoLuongNhap } = data;
 
             // Kiểm tra thuốc tồn tại
-            const [[thuoc]] = await conn.query(
+            const [[thuoc]] = await db.query(
                 "SELECT SoLuongTon FROM LOAITHUOC WHERE MaThuoc = ?",
                 [MaThuoc]
             );
 
             if (!thuoc) {
-                await conn.rollback();
+                await db.rollback();
                 return { error: "MEDICINE_NOT_FOUND" };
             }
 
             // Lấy tỉ lệ tính đơn giá bán
-            const [[thamSo]] = await conn.query(
+            const [[thamSo]] = await db.query(
                 "SELECT TiLeTinhDonGiaBan FROM THAMSO LIMIT 1"
             );
 
             if (!thamSo) {
-                await conn.rollback();
+                await db.rollback();
                 return { error: "NO_THAMSO" };
             }
 
@@ -36,7 +34,7 @@ class MedicineImportService {
             const GiaBanMoi = Math.round(GiaNhap * TiLe);
 
             // Sinh mã phiếu nhập
-            const [[row]] = await conn.query(
+            const [[row]] = await db.query(
                 "SELECT MaPNT FROM PHIEUNHAPTHUOC ORDER BY MaPNT DESC LIMIT 1"
             );
 
@@ -47,7 +45,7 @@ class MedicineImportService {
             }
 
             // Insert phiếu nhập
-            await conn.query(
+            await db.query(
                 `INSERT INTO PHIEUNHAPTHUOC
                 (MaPNT, MaThuoc, GiaNhap, NgayNhap, SoLuongNhap)
                 VALUES (?, ?, ?, ?, ?)`,
@@ -55,7 +53,7 @@ class MedicineImportService {
             );
 
             // Cập nhật tồn kho + giá bán
-            await conn.query(
+            await db.query(
                 `UPDATE LOAITHUOC
                 SET 
                     SoLuongTon = SoLuongTon + ?,
@@ -64,15 +62,11 @@ class MedicineImportService {
                 [SoLuongNhap, GiaBanMoi, MaThuoc]
             );
 
-            await conn.commit();
             return { MaPNT, MaThuoc, GiaNhap, NgayNhap, SoLuongNhap, GiaBanMoi };
         }
         catch (error) {
             console.log("MedicineImportService create Error:", error);
             return null;
-        }
-        finally {
-            conn.release();  
         }
     }
 
@@ -96,9 +90,7 @@ class MedicineImportService {
 
     // Cập nhật phiếu nhập thuốc
     static async updateMedicineImport(MaPNT, updateData) {
-        const conn = await db.getConnection();
         try {
-            await conn.beginTransaction();
 
             const {
                 GiaNhap,
@@ -107,7 +99,7 @@ class MedicineImportService {
             } = updateData;
 
             // Lấy phiếu nhập cũ
-            const [[oldPNT]] = await conn.query(
+            const [[oldPNT]] = await db.query(
                 `
                 SELECT MaThuoc, SoLuongNhap
                 FROM PHIEUNHAPTHUOC
@@ -117,7 +109,7 @@ class MedicineImportService {
             );
 
             if (!oldPNT) {
-                await conn.rollback();
+                await db.rollback();
                 return false; // không tìm thấy phiếu nhập
             }
 
@@ -127,7 +119,7 @@ class MedicineImportService {
             const delta = SoLuongNhap - oldPNT.SoLuongNhap;
 
             // Kiểm tra tồn kho không âm
-            const [[thuoc]] = await conn.query(
+            const [[thuoc]] = await db.query(
                 `
                 SELECT SoLuongTon
                 FROM LOAITHUOC
@@ -137,12 +129,12 @@ class MedicineImportService {
             );
 
             if (!thuoc || thuoc.SoLuongTon + delta < 0) {
-                await conn.rollback();
+                await db.rollback();
                 return { error: "INVALID_STOCK" };
             }
 
             // Cập nhật tồn kho (CHỈ BÙ TRỪ)
-            await conn.query(
+            await db.query(
                 `
                 UPDATE LOAITHUOC
                 SET SoLuongTon = SoLuongTon + ?
@@ -152,7 +144,7 @@ class MedicineImportService {
             );
 
             // Cập nhật phiếu nhập (KHÔNG đổi MaThuoc)
-            const [rows] = await conn.query(
+            const [rows] = await db.query(
                 `
                 UPDATE PHIEUNHAPTHUOC
                 SET
@@ -170,20 +162,16 @@ class MedicineImportService {
             );
 
             if (rows.affectedRows === 0) {
-                await conn.rollback();
+                await db.rollback();
                 return false;
             }
 
-            await conn.commit();
             return true;
         }
         catch (error) {
-            await conn.rollback();
+            await db.rollback();
             console.log("MedicineImportService update Error:", error);
             return null;
-        }
-        finally {
-            conn.release();
         }
     }
 
