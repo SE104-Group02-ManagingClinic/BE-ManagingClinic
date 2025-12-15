@@ -45,7 +45,7 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *                   properties:
  *                     MaThuoc:
  *                       type: string
- *                       example: "T0001"
+ *                       example: "LT001"
  *                     SoLuong:
  *                       type: integer
  *                       example: 2
@@ -139,7 +139,7 @@ router.post('/createMedicalExamForm', medicalExamFormController.createMedicalExa
  *                   properties:
  *                     MaThuoc:
  *                       type: string
- *                       example: "T0001"
+ *                       example: "LT001"
  *                     SoLuong:
  *                       type: integer
  *                       example: 2
@@ -357,7 +357,7 @@ router.get('/getExamsFormByDate/:NgayKham', medicalExamFormController.getExamFor
  *                     properties:
  *                       MaThuoc:
  *                         type: string
- *                         example: "T0001"
+ *                         example: "LT001"
  *                       TenThuoc:
  *                         type: string
  *                         example: "Paracetamol"
