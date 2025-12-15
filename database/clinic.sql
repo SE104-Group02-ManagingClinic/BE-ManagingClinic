@@ -144,7 +144,7 @@
             -- Bảng Hóa Đơn Thanh Toán (Lưu trữ thông tin thanh toán cho Phiếu Khám Bệnh)
     CREATE TABLE HOADONTHANHTOAN (
         MaHD VARCHAR(7) PRIMARY KEY,
-        MaPKB VARCHAR(5), -- Khóa ngoại từ PHIEUKHAMBENH (1 PKB chỉ có 1 HDTT)
+        MaPKB VARCHAR(8), -- Khóa ngoại từ PHIEUKHAMBENH (1 PKB chỉ có 1 HDTT)
         NgayTHANHTOAN DATE,
         TienKham INT,
         TienThuoc INT,
