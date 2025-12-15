@@ -22,19 +22,24 @@ exports.createMedicineImport = async (req, res) => {
             });
         }
 
-        const existedThuoc = await MedicineImportService.checkMaThuoc(MaThuoc);
-        if (!existedThuoc) {
-            return res.status(400).json({
-                message: "Thuốc không tồn tại"
-            });
-        }
-
         const result = await MedicineImportService.createMedicineImport({
             MaThuoc,
             GiaNhap,
             NgayNhap,
             SoLuongNhap
         });
+
+        if (result.error === "MEDICINE_NOT_FOUND") {
+            return res.status(400).json({
+                message: "Thuốc không tồn tại"
+            });
+        }
+
+        if (result.error === "NO_THAMSO") {
+            return res.status(409).json({
+                message: "Chưa cấu hình tỷ lệ tính đơn giá bán"
+            });
+        }
 
         if (!result) {
             return res.status(500).json({ error: "Internal Server Error" });
@@ -65,29 +70,40 @@ exports.updateMedicineImport = async (req, res) => {
     try {
         const { MaPNT } = req.params;
         const {
-            MaThuoc,
             GiaNhap,
             NgayNhap,
             SoLuongNhap
         } = req.body;
 
+        if (GiaNhap < 0 || SoLuongNhap <= 0) {
+            return res.status(400).json({
+                message: "Giá nhập hoặc số lượng không hợp lệ"
+            });
+        }
+
         const result = await MedicineImportService.updateMedicineImport(
             MaPNT,
             {
-                MaThuoc,
                 GiaNhap,
                 NgayNhap,
                 SoLuongNhap
             }
         );
 
-        if (result === null) {
-            return res.status(500).json({ error: "Internal Server Error" });
-        }
         if (result === false) {
             return res.status(404).json({
                 message: "Không tìm thấy phiếu nhập thuốc"
             });
+        }
+
+        if (result?.error === "INVALID_STOCK") {
+            return res.status(400).json({
+                message: "Cập nhật làm tồn kho thuốc bị âm"
+            });
+        }
+
+        if (result === null) {
+            return res.status(500).json({ error: "Internal Server Error" });
         }
 
         return res.status(200).json({
