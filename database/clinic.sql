@@ -141,16 +141,16 @@ CREATE TABLE CT_BCSDT (
     PRIMARY KEY (MaBCSDT, MaThuoc)
 );
 
-        -- Bảng Hóa Đơn Thanh Toán (Lưu trữ thông tin thanh toán cho Phiếu Khám Bệnh)
-CREATE TABLE HOADONTHANHTOAN (
-    MaHD VARCHAR(5) PRIMARY KEY,
-    MaPKB VARCHAR(5), -- Khóa ngoại từ PHIEUKHAMBENH (1 PKB chỉ có 1 HDTT)
-    NgayTHANHTOAN DATE,
-    TienKham INT,
-    TienThuoc INT,
-    TongTien INT,
-    FOREIGN KEY (MaPKB) REFERENCES PHIEUKHAMBENH(MaPKB)
-);
+            -- Bảng Hóa Đơn Thanh Toán (Lưu trữ thông tin thanh toán cho Phiếu Khám Bệnh)
+    CREATE TABLE HOADONTHANHTOAN (
+        MaHD VARCHAR(7) PRIMARY KEY,
+        MaPKB VARCHAR(8), -- Khóa ngoại từ PHIEUKHAMBENH (1 PKB chỉ có 1 HDTT)
+        NgayTHANHTOAN DATE,
+        TienKham INT,
+        TienThuoc INT,
+        TongTien INT,
+        FOREIGN KEY (MaPKB) REFERENCES PHIEUKHAMBENH(MaPKB)
+    );
 
         -- Bảng Báo Cáo Doanh Thu (Tổng hợp)
 CREATE TABLE BAOCAODOANHTHU (

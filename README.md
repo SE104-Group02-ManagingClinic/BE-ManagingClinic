@@ -42,7 +42,7 @@ node index.js
 - [x] CT thuốc
 - [x] CT bệnh
 - [x] Phiếu khám bệnh
-- [ ] Hóa đơn thanh toán
+- [x] Hóa đơn thanh toán
 - [x] Báo cáo doanh thu
 - [x] Chi tiết báo cáo doanh thu
 
