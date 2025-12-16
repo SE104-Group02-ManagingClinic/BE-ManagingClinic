@@ -73,8 +73,8 @@ class MedicineService {
                 MaCachDung,
                 MaDVT,
                 TacDungPhu,
-                SoLuongTon,
-                GiaBan
+                SoLuongTon: 0,
+                GiaBan: 0
             };
 
             await db.query("INSERT INTO LOAITHUOC SET ?", [record]);
@@ -155,39 +155,39 @@ class MedicineService {
 
     static async canDeleteMedicine(MaThuoc) {
         try {
-        const [[ctThuoc]] = await db.query(
-            "SELECT 1 FROM CT_THUOC WHERE MaThuoc = ? LIMIT 1",
-            [MaThuoc]
-        );
+            const [[ctThuoc]] = await db.query(
+                "SELECT 1 FROM CT_THUOC WHERE MaThuoc = ? LIMIT 1",
+                [MaThuoc]
+            );
 
-        if (ctThuoc) {
+            if (ctThuoc) {
+                return {
+                    ok: false,
+                    message: "Không thể xóa thuốc đã được sử dụng trong đơn thuốc"
+                };
+            }
+
+            const [[pnt]] = await db.query(
+                "SELECT 1 FROM PHIEUNHAPTHUOC WHERE MaThuoc = ? LIMIT 1",
+                [MaThuoc]
+            );
+
+            if (pnt) {
+                return {
+                    ok: false,
+                    message: "Không thể xóa thuốc đã có phiếu nhập"
+                };
+            }
+
+            return { ok: true };
+        }
+        catch (error) {
+            console.log("MedicineService canDeleteMedicine Error:", error);
             return {
                 ok: false,
-                message: "Không thể xóa thuốc đã được sử dụng trong đơn thuốc"
+                message: "Lỗi kiểm tra trước khi xóa"
             };
         }
-
-        const [[pnt]] = await db.query(
-            "SELECT 1 FROM PHIEUNHAPTHUOC WHERE MaThuoc = ? LIMIT 1",
-            [MaThuoc]
-        );
-
-        if (pnt) {
-            return {
-                ok: false,
-                message: "Không thể xóa thuốc đã có phiếu nhập"
-            };
-        }
-
-        return { ok: true };
-    }
-    catch (error) {
-        console.log("MedicineService canDeleteMedicine Error:", error);
-        return {
-            ok: false,
-            message: "Lỗi kiểm tra trước khi xóa"
-        };
-    }
     }
 
     // Xóa thuốc

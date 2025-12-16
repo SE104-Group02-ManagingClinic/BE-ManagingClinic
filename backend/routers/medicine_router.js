@@ -16,7 +16,17 @@ const medicineController = require('../controllers/medicine_controller');
  * /medicine/createMedicine:
  *   post:
  *     summary: Tạo mới thuốc
- *     description: Thêm một loại thuốc mới vào hệ thống
+ *     description: |
+ *       Thêm một loại thuốc mới vào hệ thống.
+ * 
+ * 
+ *       ❗ Khi tạo mới:
+ *       - Số lượng tồn kho mặc định = 0
+ *       - Giá bán mặc định = 0
+ *       
+ *       Hai giá trị này sẽ được cập nhật thông qua:
+ *       - Phiếu nhập thuốc
+ *       - Chức năng cập nhật giá bán
  *     tags:
  *       - Medicine
  *     requestBody:
@@ -45,12 +55,6 @@ const medicineController = require('../controllers/medicine_controller');
  *               TacDungPhu:
  *                 type: string
  *                 example: Buồn nôn
- *               SoLuongTon:
- *                 type: integer
- *                 example: 100
- *               GiaBan:
- *                 type: integer
- *                 example: 2000
  *     responses:
  *       201:
  *         description: Tạo thuốc thành công
@@ -96,10 +100,10 @@ router.post('/createMedicine', medicineController.createMedicine);
  *                     example: Uống sau ăn
  *                   SoLuongTon:
  *                     type: integer
- *                     example: 100
+ *                     example: 0
  *                   GiaBan:
  *                     type: integer
- *                     example: 2000
+ *                     example: 0
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */
@@ -138,7 +142,7 @@ router.get('/getMedicine', medicineController.getMedicine);
  *                 example: CD001
  *               MaDVT:
  *                 type: string
- *                 example: DVT001
+ *                 example: DVT01
  *               TacDungPhu:
  *                 type: string
  *               SoLuongTon:

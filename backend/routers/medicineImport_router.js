@@ -115,10 +115,10 @@ router.get(
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - GiaNhap
+ *               - SoLuongNhap
  *             properties:
- *               MaThuoc:
- *                 type: string
- *                 example: LT001
  *               GiaNhap:
  *                 type: integer
  *                 example: 1600
@@ -135,6 +135,10 @@ router.get(
  *         description: Không tìm thấy phiếu nhập thuốc
  *       500:
  *         description: Lỗi máy chủ nội bộ
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc tồn kho âm
+ *       409:
+ *         description: Chưa cấu hình tỷ lệ tính đơn giá bán
  */
 router.put(
     '/updateMedicineImport/:MaPNT',
