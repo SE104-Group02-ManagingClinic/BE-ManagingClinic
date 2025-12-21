@@ -68,6 +68,67 @@ router.post(
 );
 
 /* =====================================================
+   LẤY DANH SÁCH BÁO CÁO SỬ DỤNG THUỐC
+   ===================================================== */
+/**
+ * @swagger
+ * /medicineUsageReport/getReports:
+ *   get:
+ *     summary: Lấy danh sách các báo cáo sử dụng thuốc
+ *     description: Trả về danh sách các báo cáo (theo tháng/năm)
+ *     tags:
+ *       - MedicineUsageReport
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách báo cáo thành công
+ *         content:
+ *           application/json:
+ *             example:
+ *               - MaBCSDT: BCSDT001
+ *                 Thang: 12
+ *                 Nam: 2025
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/getReports',
+    controller.getReports
+);
+
+/* =====================================================
+   XEM CHI TIẾT BÁO CÁO SỬ DỤNG THUỐC
+   ===================================================== */
+/**
+ * @swagger
+ * /medicineUsageReport/getReportDetail/{MaBCSDT}:
+ *   get:
+ *     summary: Xem chi tiết báo cáo sử dụng thuốc
+ *     description: |
+ *       Trả về chi tiết báo cáo (CT_BCSDT).
+ *       Dữ liệu được tổng hợp tự động, không nhập tay.
+ *     tags:
+ *       - MedicineUsageReport
+ *     parameters:
+ *       - in: path
+ *         name: MaBCSDT
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: BCSDT001
+ *     responses:
+ *       200:
+ *         description: Lấy chi tiết báo cáo thành công
+ *       404:
+ *         description: Không tìm thấy báo cáo
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/getReportDetail/:MaBCSDT',
+    controller.getReportDetail
+);
+
+/* =====================================================
    CẬP NHẬT (TÁI TỔNG HỢP) BÁO CÁO
    ===================================================== */
 /**

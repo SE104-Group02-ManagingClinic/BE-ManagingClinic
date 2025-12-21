@@ -68,6 +68,60 @@ class MedicineUsageReportService {
         }
     }
 
+    static async getReports() {
+        try {
+            const [rows] = await db.query(`
+                SELECT 
+                    MaBCSDT,
+                    Thang,
+                    Nam
+                FROM BAOCAOSUDUNGTHUOC
+                ORDER BY Nam DESC, Thang DESC
+            `);
+            return rows;
+        }
+        catch (error) {
+            console.log("MedicineUsageReport getReports Error:", error);
+            return null;
+        }
+    }
+
+    static async getReportDetail(MaBCSDT) {
+        try {
+            // 1. Lấy header báo cáo
+            const [[report]] = await db.query(
+                "SELECT MaBCSDT, Thang, Nam FROM BAOCAOSUDUNGTHUOC WHERE MaBCSDT = ?",
+                [MaBCSDT]
+            );
+
+            if (!report) {
+                return { error: "NOT_FOUND" };
+            }
+
+            // 2. Lấy chi tiết báo cáo
+            const [details] = await db.query(`
+                SELECT
+                    ct.MaThuoc,
+                    lt.TenThuoc,
+                    ct.SoLanDung,
+                    ct.SoLuongDung
+                FROM CT_BCSDT ct
+                JOIN LOAITHUOC lt ON ct.MaThuoc = lt.MaThuoc
+                WHERE ct.MaBCSDT = ?
+                ORDER BY lt.TenThuoc
+            `, [MaBCSDT]);
+
+            return {
+                ...report,
+                ChiTiet: details
+            };
+        }
+        catch (error) {
+            console.log("MedicineUsageReport getReportDetail Error:", error);
+            return null;
+        }
+    }
+
     static async updateReport(MaBCSDT) {
         try {
             const [[report]] = await db.query(
