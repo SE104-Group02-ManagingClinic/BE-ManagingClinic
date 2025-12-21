@@ -67,9 +67,7 @@ exports.updateMedicine = async (req, res) => {
             CongDung,
             MaCachDung,
             MaDVT,
-            TacDungPhu,
-            SoLuongTon,
-            GiaBan
+            TacDungPhu
         } = req.body;
 
         // Kiểm tra khóa ngoại
@@ -87,9 +85,7 @@ exports.updateMedicine = async (req, res) => {
                 CongDung,
                 MaCachDung,
                 MaDVT,
-                TacDungPhu,
-                SoLuongTon,
-                GiaBan
+                TacDungPhu
             }
         );
 
@@ -119,7 +115,7 @@ exports.deleteMedicine = async (req, res) => {
             });
         }
 
-        // 1️⃣ KIỂM TRA THUỐC ĐÃ ĐƯỢC DÙNG CHƯA
+        // KIỂM TRA THUỐC ĐÃ ĐƯỢC DÙNG CHƯA
         const check = await MedicineService.canDeleteMedicine(MaThuoc);
         if (!check.ok) {
             return res.status(400).json({
@@ -127,7 +123,7 @@ exports.deleteMedicine = async (req, res) => {
             });
         }
 
-        // 2️⃣ THỰC HIỆN XÓA
+        // THỰC HIỆN XÓA
         const result = await MedicineService.deleteMedicine(MaThuoc);
 
         if (result === null) {

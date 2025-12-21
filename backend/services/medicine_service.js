@@ -91,9 +91,14 @@ class MedicineService {
         try {
             const [rows] = await db.query(`
                 SELECT 
-                    t.*, 
-                    d.TenDVT, 
-                    c.TenCachDung
+                    t.MaThuoc,
+                    t.TenThuoc,
+                    t.CongDung,
+                    d.TenDVT,
+                    c.TenCachDung,
+                    t.TacDungPhu,
+                    t.SoLuongTon,
+                    t.GiaBan
                 FROM LOAITHUOC t
                 LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
                 LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
@@ -114,9 +119,7 @@ class MedicineService {
                 CongDung,
                 MaCachDung,
                 MaDVT,
-                TacDungPhu,
-                SoLuongTon,
-                GiaBan
+                TacDungPhu
             } = updateData;
 
             const [rows] = await db.query(
@@ -127,9 +130,7 @@ class MedicineService {
                     CongDung = ?,
                     MaCachDung = ?,
                     MaDVT = ?,
-                    TacDungPhu = ?,
-                    SoLuongTon = ?,
-                    GiaBan = ?
+                    TacDungPhu = ?
                 WHERE MaThuoc = ?
                 `,
                 [
@@ -138,8 +139,6 @@ class MedicineService {
                     MaCachDung,
                     MaDVT,
                     TacDungPhu,
-                    SoLuongTon,
-                    GiaBan,
                     MaThuoc
                 ]
             );
