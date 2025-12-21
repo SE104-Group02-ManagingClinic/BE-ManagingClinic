@@ -115,7 +115,7 @@ router.get('/getMedicine', medicineController.getMedicine);
  * /medicine/searchMedicine:
  *   get:
  *     summary: Tìm kiếm thuốc theo tiêu chuẩn
- *     description: Tìm kiếm thuốc theo Tên thuốc, Đơn vị tính và Tình trạng (con/het)
+ *     description: Tìm kiếm thuốc theo Tên thuốc và Đơn vị tính
  *     tags:
  *       - Medicine
  *     parameters:
@@ -129,11 +129,7 @@ router.get('/getMedicine', medicineController.getMedicine);
  *         schema:
  *           type: string
  *         description: Tên đơn vị tính (partial match)
- *       - in: query
- *         name: TinhTrang
- *         schema:
- *           type: string
- *         description: 'Trạng thái kho: use "con" cho còn hàng, "het" cho hết hàng'
+ *       
  *     responses:
  *       200:
  *         description: Kết quả tìm kiếm
@@ -160,8 +156,7 @@ router.get('/getMedicine', medicineController.getMedicine);
  *                     type: integer
  *                   GiaBan:
  *                     type: number
- *                   TinhTrang:
- *                     type: string
+ *                   
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */

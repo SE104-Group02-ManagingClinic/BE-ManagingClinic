@@ -58,16 +58,14 @@ exports.getMedicine = async (req, res) => {
     }
 };
 
-// Tìm kiếm thuốc theo tiêu chuẩn: TenThuoc, TenDVT, TinhTrang
+// Tìm kiếm thuốc theo tiêu chuẩn: TenThuoc, TenDVT
 exports.searchMedicine = async (req, res) => {
     try {
-        const { TenThuoc, TenDVT, TinhTrang } = req.query;
+        const { TenThuoc, TenDVT } = req.query;
 
-        // Normalize TinhTrang if provided: expect 'con' or 'het'
         const filters = {
             TenThuoc: TenThuoc || undefined,
-            TenDVT: TenDVT || undefined,
-            TinhTrang: TinhTrang || undefined
+            TenDVT: TenDVT || undefined
         };
 
         const rows = await MedicineService.searchMedicine(filters);

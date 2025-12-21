@@ -114,7 +114,7 @@ class MedicineService {
     // Tìm kiếm thuốc theo tiêu chuẩn (Tên thuốc, Đơn vị tính, Tình trạng)
     static async searchMedicine(filters) {
         try {
-            const { TenThuoc, TenDVT, TinhTrang } = filters || {};
+            const { TenThuoc, TenDVT } = filters || {};
 
             let sql = `
                 SELECT
@@ -125,8 +125,7 @@ class MedicineService {
                     d.TenDVT,
                     t.TacDungPhu,
                     t.SoLuongTon,
-                    t.GiaBan,
-                    CASE WHEN t.SoLuongTon > 0 THEN 'Con hang' ELSE 'Het hang' END AS TinhTrang
+                    t.GiaBan
                 FROM LOAITHUOC t
                 LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
                 LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
@@ -143,17 +142,6 @@ class MedicineService {
             if (TenDVT) {
                 sql += ` AND LOWER(d.TenDVT) LIKE ?`;
                 params.push(`%${TenDVT.toLowerCase()}%`);
-            }
-
-            if (TinhTrang) {
-                // Expecting values: 'con' or 'het' (case-insensitive)
-                const tt = TinhTrang.toString().toLowerCase();
-                if (tt === 'con') {
-                    sql += ` AND t.SoLuongTon > 0`;
-                }
-                else if (tt === 'het') {
-                    sql += ` AND (t.SoLuongTon = 0 OR t.SoLuongTon IS NULL)`;
-                }
             }
 
             sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)`;
