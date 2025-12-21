@@ -2,23 +2,22 @@ const db = require('../config/database');
 
 class MedicineUsageReportService {
     static async createReport({ Thang, Nam }) {
-        const conn = await db.getConnection();
+        // const conn = await db.getConnection();
         try {
-            await conn.beginTransaction();
+            // await conn.beginTransaction();
 
             // 0. Check đã tồn tại báo cáo tháng/năm chưa
-            const [[existed]] = await conn.query(
+            const [[existed]] = await db.query(
                 "SELECT MaBCSDT FROM BAOCAOSUDUNGTHUOC WHERE Thang = ? AND Nam = ?",
                 [Thang, Nam]
             );
 
             if (existed) {
-                await conn.rollback();
                 return { error: "EXISTED_REPORT" };
             }
 
             // 1. Tổng hợp trước để check có dữ liệu không
-            const [details] = await conn.query(`
+            const [details] = await db.query(`
                 SELECT 
                     ct.MaThuoc,
                     COUNT(DISTINCT pkb.MaPKB) AS SoLanDung,
@@ -31,12 +30,11 @@ class MedicineUsageReportService {
             `, [Thang, Nam]);
 
             if (details.length === 0) {
-                await conn.rollback();
                 return { error: "NO_DATA" };
             }
 
             // 2. Sinh mã BCSDTxxx
-            const [[row]] = await conn.query(
+            const [[row]] = await db.query(
                 "SELECT MaBCSDT FROM BAOCAOSUDUNGTHUOC ORDER BY MaBCSDT DESC LIMIT 1"
             );
 
@@ -47,14 +45,14 @@ class MedicineUsageReportService {
             }
 
             // 3. Insert báo cáo
-            await conn.query(
+            await db.query(
                 "INSERT INTO BAOCAOSUDUNGTHUOC (MaBCSDT, Thang, Nam) VALUES (?, ?, ?)",
                 [MaBCSDT, Thang, Nam]
             );
 
             // 4. Insert chi tiết
             for (const d of details) {
-                await conn.query(
+                await db.query(
                     `INSERT INTO CT_BCSDT
                     (MaBCSDT, MaThuoc, SoLanDung, SoLuongDung)
                     VALUES (?, ?, ?, ?)`,
@@ -62,37 +60,82 @@ class MedicineUsageReportService {
                 );
             }
 
-            await conn.commit();
             return { MaBCSDT, Thang, Nam };
         }
         catch (error) {
-            await conn.rollback();
             console.log("MedicineUsageReport create Error:", error);
             return null;
         }
-        finally {
-            conn.release();
+    }
+
+    static async getReports() {
+        try {
+            const [rows] = await db.query(`
+                SELECT 
+                    MaBCSDT,
+                    Thang,
+                    Nam
+                FROM BAOCAOSUDUNGTHUOC
+                ORDER BY Nam DESC, Thang DESC
+            `);
+            return rows;
+        }
+        catch (error) {
+            console.log("MedicineUsageReport getReports Error:", error);
+            return null;
+        }
+    }
+
+    static async getReportDetail(MaBCSDT) {
+        try {
+            // 1. Lấy header báo cáo
+            const [[report]] = await db.query(
+                "SELECT MaBCSDT, Thang, Nam FROM BAOCAOSUDUNGTHUOC WHERE MaBCSDT = ?",
+                [MaBCSDT]
+            );
+
+            if (!report) {
+                return { error: "NOT_FOUND" };
+            }
+
+            // 2. Lấy chi tiết báo cáo
+            const [details] = await db.query(`
+                SELECT
+                    ct.MaThuoc,
+                    lt.TenThuoc,
+                    ct.SoLanDung,
+                    ct.SoLuongDung
+                FROM CT_BCSDT ct
+                JOIN LOAITHUOC lt ON ct.MaThuoc = lt.MaThuoc
+                WHERE ct.MaBCSDT = ?
+                ORDER BY lt.TenThuoc
+            `, [MaBCSDT]);
+
+            return {
+                ...report,
+                ChiTiet: details
+            };
+        }
+        catch (error) {
+            console.log("MedicineUsageReport getReportDetail Error:", error);
+            return null;
         }
     }
 
     static async updateReport(MaBCSDT) {
-        const conn = await db.getConnection();
         try {
-            await conn.beginTransaction();
-
-            const [[report]] = await conn.query(
+            const [[report]] = await db.query(
                 "SELECT Thang, Nam FROM BAOCAOSUDUNGTHUOC WHERE MaBCSDT = ?",
                 [MaBCSDT]
             );
 
             if (!report) {
-                await conn.rollback();
                 return { error: "NOT_FOUND" };
             }
 
             const { Thang, Nam } = report;
 
-            const [details] = await conn.query(`
+            const [details] = await db.query(`
                 SELECT 
                     ct.MaThuoc,
                     COUNT(DISTINCT pkb.MaPKB) AS SoLanDung,
@@ -105,17 +148,16 @@ class MedicineUsageReportService {
             `, [Thang, Nam]);
 
             if (details.length === 0) {
-                await conn.rollback();
                 return { error: "NO_DATA" };
             }
 
-            await conn.query(
+            await db.query(
                 "DELETE FROM CT_BCSDT WHERE MaBCSDT = ?",
                 [MaBCSDT]
             );
 
             for (const d of details) {
-                await conn.query(
+                await db.query(
                     `INSERT INTO CT_BCSDT
                     (MaBCSDT, MaThuoc, SoLanDung, SoLuongDung)
                     VALUES (?, ?, ?, ?)`,
@@ -123,54 +165,41 @@ class MedicineUsageReportService {
                 );
             }
 
-            await conn.commit();
             return true;
         }
         catch (error) {
-            await conn.rollback();
             console.log("MedicineUsageReport update Error:", error);
             return null;
-        }
-        finally {
-            conn.release();
         }
     }
     
     static async deleteReport(MaBCSDT) {
-        const conn = await db.getConnection();
         try {
-            await conn.beginTransaction();
-
-            const [[exist]] = await conn.query(
+            const [[exist]] = await db.query(
                 "SELECT MaBCSDT FROM BAOCAOSUDUNGTHUOC WHERE MaBCSDT = ?",
                 [MaBCSDT]
             );
 
             if (!exist) {
-                await conn.rollback();
+                await db.rollback();
                 return { error: "NOT_FOUND" };
             }
 
-            await conn.query(
+            await db.query(
                 "DELETE FROM CT_BCSDT WHERE MaBCSDT = ?",
                 [MaBCSDT]
             );
 
-            await conn.query(
+            await db.query(
                 "DELETE FROM BAOCAOSUDUNGTHUOC WHERE MaBCSDT = ?",
                 [MaBCSDT]
             );
 
-            await conn.commit();
             return true;
         }
         catch (error) {
-            await conn.rollback();
             console.log("MedicineUsageReport delete Error:", error);
             return null;
-        }
-        finally {
-            conn.release();
         }
     }
 
