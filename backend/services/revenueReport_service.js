@@ -73,6 +73,60 @@ class RevenueReportService {
         }
     }
 
+    static async getReports() {
+        try {
+            const [rows] = await db.query(`
+                SELECT
+                    MaBCDT,
+                    THANG,
+                    NAM,
+                    TongDoanhThu
+                FROM BAOCAODOANHTHU
+                ORDER BY NAM DESC, THANG DESC
+            `);
+            return rows;
+        }
+        catch (error) {
+            console.log("RevenueReport getReports Error:", error);
+            return null;
+        }
+    }
+
+    static async getReportDetail(MaBCDT) {
+        try {
+            const [[report]] = await db.query(
+                `SELECT MaBCDT, THANG, NAM, TongDoanhThu
+                FROM BAOCAODOANHTHU
+                WHERE MaBCDT = ?`,
+                [MaBCDT]
+            );
+
+            if (!report) {
+                return { error: "NOT_FOUND" };
+            }
+
+            const [details] = await db.query(`
+                SELECT
+                    Ngay,
+                    SoBenhNhan,
+                    DOANHTHU,
+                    TyLe
+                FROM CT_BCDT
+                WHERE MaBCDT = ?
+                ORDER BY Ngay
+            `, [MaBCDT]);
+
+            return {
+                ...report,
+                ChiTiet: details
+            };
+        }
+        catch (error) {
+            console.log("RevenueReport getReportDetail Error:", error);
+            return null;
+        }
+    }
+
     static async updateReport(MaBCDT) {
         try {
             const [[report]] = await db.query(

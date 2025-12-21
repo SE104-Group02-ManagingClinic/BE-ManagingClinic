@@ -82,6 +82,61 @@ router.post(
 
 /**
  * =====================================================
+ *  LẤY DANH SÁCH BÁO CÁO DOANH THU
+ * =====================================================
+ */
+/**
+ * @swagger
+ * /revenueReport/getReports:
+ *   get:
+ *     summary: Lấy danh sách báo cáo doanh thu
+ *     tags:
+ *       - RevenueReport
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách báo cáo thành công
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/getReports',
+    revenueReportController.getReports
+);
+
+/**
+ * =====================================================
+ *  XEM CHI TIẾT BÁO CÁO DOANH THU
+ * =====================================================
+ */
+/**
+ * @swagger
+ * /revenueReport/getReportDetail/{MaBCDT}:
+ *   get:
+ *     summary: Xem chi tiết báo cáo doanh thu
+ *     tags:
+ *       - RevenueReport
+ *     parameters:
+ *       - in: path
+ *         name: MaBCDT
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: BCDT0001
+ *     responses:
+ *       200:
+ *         description: Lấy chi tiết báo cáo thành công
+ *       404:
+ *         description: Không tìm thấy báo cáo
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/getReportDetail/:MaBCDT',
+    revenueReportController.getReportDetail
+);
+
+/**
+ * =====================================================
  *  CẬP NHẬT (TÁI TỔNG HỢP) BÁO CÁO DOANH THU
  * =====================================================
  */

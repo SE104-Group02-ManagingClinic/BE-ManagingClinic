@@ -40,6 +40,54 @@ exports.createReport = async (req, res) => {
     }
 };
 
+exports.getReports = async (req, res) => {
+    try {
+        const rows = await Service.getReports();
+
+        if (!rows) {
+            return res.status(500).json({
+                error: "Internal Server Error"
+            });
+        }
+
+        return res.status(200).json(rows);
+    }
+    catch (error) {
+        console.error("Error getRevenueReports:", error);
+        return res.status(500).json({
+            error: "Internal Server Error"
+        });
+    }
+};
+
+exports.getReportDetail = async (req, res) => {
+    try {
+        const { MaBCDT } = req.params;
+
+        const result = await Service.getReportDetail(MaBCDT);
+
+        if (result?.error === "NOT_FOUND") {
+            return res.status(404).json({
+                message: "Không tìm thấy báo cáo doanh thu"
+            });
+        }
+
+        if (!result) {
+            return res.status(500).json({
+                error: "Internal Server Error"
+            });
+        }
+
+        return res.status(200).json(result);
+    }
+    catch (error) {
+        console.error("Error getRevenueReportDetail:", error);
+        return res.status(500).json({
+            error: "Internal Server Error"
+        });
+    }
+};
+
 exports.updateReport = async (req, res) => {
     try {
         const { MaBCDT } = req.params;
