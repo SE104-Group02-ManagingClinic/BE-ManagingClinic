@@ -91,9 +91,14 @@ class MedicineService {
         try {
             const [rows] = await db.query(`
                 SELECT 
-                    t.*, 
-                    d.TenDVT, 
-                    c.TenCachDung
+                    t.MaThuoc,
+                    t.TenThuoc,
+                    t.CongDung,
+                    d.TenDVT,
+                    c.TenCachDung,
+                    t.TacDungPhu,
+                    t.SoLuongTon,
+                    t.GiaBan
                 FROM LOAITHUOC t
                 LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
                 LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
