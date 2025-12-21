@@ -111,6 +111,62 @@ class MedicineService {
         }
     }
 
+    // Tìm kiếm thuốc theo tiêu chuẩn (Tên thuốc, Đơn vị tính, Tình trạng)
+    static async searchMedicine(filters) {
+        try {
+            const { TenThuoc, TenDVT, TinhTrang } = filters || {};
+
+            let sql = `
+                SELECT
+                    t.MaThuoc,
+                    t.TenThuoc,
+                    t.CongDung,
+                    c.TenCachDung,
+                    d.TenDVT,
+                    t.TacDungPhu,
+                    t.SoLuongTon,
+                    t.GiaBan,
+                    CASE WHEN t.SoLuongTon > 0 THEN 'Con hang' ELSE 'Het hang' END AS TinhTrang
+                FROM LOAITHUOC t
+                LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
+                LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
+                WHERE 1=1
+            `;
+
+            const params = [];
+
+            if (TenThuoc) {
+                sql += ` AND LOWER(t.TenThuoc) LIKE ?`;
+                params.push(`%${TenThuoc.toLowerCase()}%`);
+            }
+
+            if (TenDVT) {
+                sql += ` AND LOWER(d.TenDVT) LIKE ?`;
+                params.push(`%${TenDVT.toLowerCase()}%`);
+            }
+
+            if (TinhTrang) {
+                // Expecting values: 'con' or 'het' (case-insensitive)
+                const tt = TinhTrang.toString().toLowerCase();
+                if (tt === 'con') {
+                    sql += ` AND t.SoLuongTon > 0`;
+                }
+                else if (tt === 'het') {
+                    sql += ` AND (t.SoLuongTon = 0 OR t.SoLuongTon IS NULL)`;
+                }
+            }
+
+            sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)`;
+
+            const [rows] = await db.query(sql, params);
+            return rows;
+        }
+        catch (error) {
+            console.log("MedicineService searchMedicine Error:", error);
+            return null;
+        }
+    }
+
     // Cập nhật thuốc
     static async updateMedicine(MaThuoc, updateData) {
         try {

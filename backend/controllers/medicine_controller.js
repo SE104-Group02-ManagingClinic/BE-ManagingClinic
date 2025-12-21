@@ -58,6 +58,31 @@ exports.getMedicine = async (req, res) => {
     }
 };
 
+// Tìm kiếm thuốc theo tiêu chuẩn: TenThuoc, TenDVT, TinhTrang
+exports.searchMedicine = async (req, res) => {
+    try {
+        const { TenThuoc, TenDVT, TinhTrang } = req.query;
+
+        // Normalize TinhTrang if provided: expect 'con' or 'het'
+        const filters = {
+            TenThuoc: TenThuoc || undefined,
+            TenDVT: TenDVT || undefined,
+            TinhTrang: TinhTrang || undefined
+        };
+
+        const rows = await MedicineService.searchMedicine(filters);
+        if (rows === null) {
+            return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        return res.status(200).json(rows);
+    }
+    catch (error) {
+        console.error("Error searchMedicine:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
 // Cập nhật thuốc
 exports.updateMedicine = async (req, res) => {
     try {
