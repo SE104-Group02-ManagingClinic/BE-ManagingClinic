@@ -26,11 +26,14 @@ class MedicalExamForm {
 
             // Lay MaPKB cuoi dung
             const [rows] = await db.query(
-                "select MaPKB from PHIEUKHAMBENH order by MaPKB decs limit 1"
+                `select MaPKB 
+                from PHIEUKHAMBENH 
+                order by MaPKB desc 
+                limit 1`
             );
             let lastId = "";
             if (rows.length > 0) {
-                lastId = rows[0].MaPKBl
+                lastId = rows[0].MaPKB;
             }
             
             // Tao MaPKB
@@ -44,43 +47,46 @@ class MedicalExamForm {
                 TrieuChung,
                 TongTienThuoc
             }
-            const result = await db.query(
+            const [result] = await db.query(
                 "insert into PHIEUKHAMBENH set ?",
                 [record]
             );
 
-            // Tao CT Benh
-            for (let i = 0; i < CT_Benh.length; i++) {
-                const record = {
-                    MaPKB: nextId,
-                    MaBenh: CT_Benh[i]
-                };
-                const result = await db.query(
-                    "insert into CT_BENH set ?",
-                    [record]
-                );
-            }
-
-            // Tao CT Thuoc
-            for (let i = 0; i < CT_Thuoc.length; i++) {
-                const record = {
-                    MaThuoc: CT_Thuoc[i].MaThuoc,
-                    MaPKB: nextId,
-                    SoLuong: CT_Thuoc[i].SoLuong,
-                    DonGiaBan: CT_Thuoc[i].DonGiaBan,
-                    ThanhTien: CT_Thuoc[i].ThanhTien
+            // Nếu tạo thành công (affectedRows > 0) thì mới thêm CT_BENH và CT_THUOC
+            if (result.affectedRows > 0) {
+                // Tạo CT_BENH
+                for (let i = 0; i < CT_Benh.length; i++) {
+                    const recordBenh = {
+                        MaPKB: nextId,
+                        MaBenh: CT_Benh[i]
+                    };
+                    await db.query(
+                        "INSERT INTO CT_BENH SET ?",
+                        [recordBenh]
+                    );
                 }
-                const result = await db.query(
-                    "insert into CT_THUOC set ?",
-                    [record]
-                );
+
+                // Tạo CT_THUOC
+                for (let i = 0; i < CT_Thuoc.length; i++) {
+                    const recordThuoc = {
+                        MaThuoc: CT_Thuoc[i].MaThuoc,
+                        MaPKB: nextId,
+                        SoLuong: CT_Thuoc[i].SoLuong,
+                        DonGiaBan: CT_Thuoc[i].DonGiaBan,
+                        ThanhTien: CT_Thuoc[i].ThanhTien
+                    };
+                    await db.query(
+                        "INSERT INTO CT_THUOC SET ?",
+                        [recordThuoc]
+                    );
+                }
+                return nextId;
             }
-
-            return MaPKB;
-
+            else return "";
         }
         catch (error) {
             console.log("MedicalExamForm createMedicalExamForm error: ", error);
+            return null;
         }
 
     }

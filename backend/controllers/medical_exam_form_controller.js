@@ -26,10 +26,19 @@ exports.createMedicalExamForm = async(req, res) => {
             res.status(409).json({message: "Bệnh nhân không tồn tại"});
         }
         const addForm = await MedicalExamFormService.createExamForm(data);
+        console.log(addForm);
         if (addForm === null) {
             res.status(500).json({error: 'Internal Server Error'});        
         }
-        res.status(201).json({message: "Tạo thành công phiếu khám bệnh", MaPKB: addForm});
+        else if (addForm === "") {
+            res.status(400).json({error: 'Tạo không thành công'});    
+        }
+        else {
+            res.status(201).json({
+                message: "Tạo thành công phiếu khám bệnh", 
+                MaPKB: addForm
+            });
+        }
     }
     catch (error) {
         console.error('Error createMedicalExamForm: ', error);
@@ -40,7 +49,7 @@ exports.createMedicalExamForm = async(req, res) => {
 // Cập nhật Phiếu kham benh
 exports.updateMedicalExamForm = async(req, res) => {
     try {
-        const MaPKB = req.params;
+        const {MaPKB} = req.params;
         const {
             MaBN,
             NgayKham,
@@ -101,8 +110,8 @@ exports.deleteMedicalExamForm = async (req, res) => {
 // Lấy danh sách Phiếu khám bệnh theo ngày khám
 exports.getExamFormsByDate = async (req, res) => {
     try {
-        const date = req.params;
-        const list = await MedicalExamFormService.getExamFormsByDate(date);
+        const {NgayKham} = req.params;
+        const list = await MedicalExamFormService.getExamFormsByDate(NgayKham);
         res.status(200).json(list);
     }
     catch (error) {
@@ -114,7 +123,7 @@ exports.getExamFormsByDate = async (req, res) => {
 // Lấy thông tin phiếu khám bệnh theo MaPKB
 exports.getExamFormById = async (req, res) => {
     try {
-        const MaPKB = req.params;
+        const {MaPKB} = req.params;
         const result = await MedicalExamFormService.getExamFormById(MaPKB);
         if (result === null) {
             res.status(404).json({message: "Không tìm thấy"});
