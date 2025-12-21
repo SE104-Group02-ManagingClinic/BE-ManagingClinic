@@ -135,13 +135,13 @@ class MedicineService {
             const params = [];
 
             if (TenThuoc) {
-                sql += ` AND LOWER(t.TenThuoc) LIKE ?`;
-                params.push(`%${TenThuoc.toLowerCase()}%`);
+                sql += ` AND t.TenThuoc LIKE ? COLLATE utf8mb4_unicode_ci`;
+                params.push(`%${TenThuoc}%`);
             }
 
             if (TenDVT) {
-                sql += ` AND LOWER(d.TenDVT) LIKE ?`;
-                params.push(`%${TenDVT.toLowerCase()}%`);
+                sql += ` AND d.TenDVT LIKE ? COLLATE utf8mb4_unicode_ci`;
+                params.push(`%${TenDVT}%`);
             }
 
             sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)`;
@@ -154,6 +154,7 @@ class MedicineService {
             return null;
         }
     }
+
 
     // Cập nhật thuốc
     static async updateMedicine(MaThuoc, updateData) {
