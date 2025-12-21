@@ -145,10 +145,6 @@ router.get('/getMedicine', medicineController.getMedicine);
  *                 example: DVT01
  *               TacDungPhu:
  *                 type: string
- *               SoLuongTon:
- *                 type: integer
- *               GiaBan:
- *                 type: integer
  *     responses:
  *       200:
  *         description: Cập nhật thuốc thành công

@@ -67,9 +67,7 @@ exports.updateMedicine = async (req, res) => {
             CongDung,
             MaCachDung,
             MaDVT,
-            TacDungPhu,
-            SoLuongTon,
-            GiaBan
+            TacDungPhu
         } = req.body;
 
         // Kiểm tra khóa ngoại
@@ -87,9 +85,7 @@ exports.updateMedicine = async (req, res) => {
                 CongDung,
                 MaCachDung,
                 MaDVT,
-                TacDungPhu,
-                SoLuongTon,
-                GiaBan
+                TacDungPhu
             }
         );
 

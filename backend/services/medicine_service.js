@@ -119,9 +119,7 @@ class MedicineService {
                 CongDung,
                 MaCachDung,
                 MaDVT,
-                TacDungPhu,
-                SoLuongTon,
-                GiaBan
+                TacDungPhu
             } = updateData;
 
             const [rows] = await db.query(
@@ -132,9 +130,7 @@ class MedicineService {
                     CongDung = ?,
                     MaCachDung = ?,
                     MaDVT = ?,
-                    TacDungPhu = ?,
-                    SoLuongTon = ?,
-                    GiaBan = ?
+                    TacDungPhu = ?
                 WHERE MaThuoc = ?
                 `,
                 [
@@ -143,8 +139,6 @@ class MedicineService {
                     MaCachDung,
                     MaDVT,
                     TacDungPhu,
-                    SoLuongTon,
-                    GiaBan,
                     MaThuoc
                 ]
             );
