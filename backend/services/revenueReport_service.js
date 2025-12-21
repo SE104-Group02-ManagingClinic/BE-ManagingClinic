@@ -26,13 +26,9 @@ class RevenueReportService {
                 GROUP BY NgayTHANHTOAN
             `, [Thang, Nam]);
 
-            if (details.length === 0) {
-                return { error: "NO_DATA" };
-            }
-
-            const TongDoanhThu = details.reduce(
-                (sum, d) => sum + d.DOANHTHU, 0
-            );
+            const TongDoanhThu = details.length === 0
+            ? 0
+            : details.reduce((sum, d) => sum + d.DOANHTHU, 0);
 
             // 3. Sinh mã BCDTxxxx
             const [[row]] = await db.query(
@@ -55,12 +51,12 @@ class RevenueReportService {
 
             // 5. Insert chi tiết
             for (const d of details) {
-                const TyLe = (d.DOANHTHU / TongDoanhThu) * 100;
+                const TyLe = TongDoanhThu === 0 ? 0 : (d.DOANHTHU / TongDoanhThu) * 100;
 
                 await db.query(
                     `INSERT INTO CT_BCDT
-                     (MaBCDT, Ngay, SoBenhNhan, DOANHTHU, TyLe)
-                     VALUES (?, ?, ?, ?, ?)`,
+                    (MaBCDT, Ngay, SoBenhNhan, DOANHTHU, TyLe)
+                    VALUES (?, ?, ?, ?, ?)`,
                     [MaBCDT, d.Ngay, d.SoBenhNhan, d.DOANHTHU, TyLe]
                 );
             }

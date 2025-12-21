@@ -68,8 +68,6 @@ const revenueReportController = require('../controllers/revenueReport_controller
  *                 Thang: 12
  *                 Nam: 2025
  *                 TongDoanhThu: 35000000
- *       400:
- *         description: Không có dữ liệu hóa đơn trong tháng
  *       409:
  *         description: Báo cáo tháng này đã tồn tại
  *       500:
