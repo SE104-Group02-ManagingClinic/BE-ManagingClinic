@@ -68,8 +68,6 @@ const revenueReportController = require('../controllers/revenueReport_controller
  *                 Thang: 12
  *                 Nam: 2025
  *                 TongDoanhThu: 35000000
- *       400:
- *         description: Không có dữ liệu hóa đơn trong tháng
  *       409:
  *         description: Báo cáo tháng này đã tồn tại
  *       500:
@@ -78,6 +76,61 @@ const revenueReportController = require('../controllers/revenueReport_controller
 router.post(
     '/createReport',
     revenueReportController.createReport
+);
+
+/**
+ * =====================================================
+ *  LẤY DANH SÁCH BÁO CÁO DOANH THU
+ * =====================================================
+ */
+/**
+ * @swagger
+ * /revenueReport/getReports:
+ *   get:
+ *     summary: Lấy danh sách báo cáo doanh thu
+ *     tags:
+ *       - RevenueReport
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách báo cáo thành công
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/getReports',
+    revenueReportController.getReports
+);
+
+/**
+ * =====================================================
+ *  XEM CHI TIẾT BÁO CÁO DOANH THU
+ * =====================================================
+ */
+/**
+ * @swagger
+ * /revenueReport/getReportDetail/{MaBCDT}:
+ *   get:
+ *     summary: Xem chi tiết báo cáo doanh thu
+ *     tags:
+ *       - RevenueReport
+ *     parameters:
+ *       - in: path
+ *         name: MaBCDT
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: BCDT0001
+ *     responses:
+ *       200:
+ *         description: Lấy chi tiết báo cáo thành công
+ *       404:
+ *         description: Không tìm thấy báo cáo
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/getReportDetail/:MaBCDT',
+    revenueReportController.getReportDetail
 );
 
 /**

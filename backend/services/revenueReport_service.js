@@ -3,23 +3,19 @@ const db = require('../config/database');
 class RevenueReportService {
 
     static async createReport({ Thang, Nam }) {
-        const conn = await db.getConnection();
         try {
-            await conn.beginTransaction();
-
             // 1. Check trùng báo cáo
-            const [[exist]] = await conn.query(
+            const [[exist]] = await db.query(
                 "SELECT MaBCDT FROM BAOCAODOANHTHU WHERE THANG = ? AND NAM = ?",
                 [Thang, Nam]
             );
 
             if (exist) {
-                await conn.rollback();
                 return { error: "EXISTED_REPORT" };
             }
 
             // 2. Tổng hợp doanh thu theo ngày
-            const [details] = await conn.query(`
+            const [details] = await db.query(`
                 SELECT 
                     NgayTHANHTOAN AS Ngay,
                     COUNT(DISTINCT MaPKB) AS SoBenhNhan,
@@ -30,17 +26,12 @@ class RevenueReportService {
                 GROUP BY NgayTHANHTOAN
             `, [Thang, Nam]);
 
-            if (details.length === 0) {
-                await conn.rollback();
-                return { error: "NO_DATA" };
-            }
-
-            const TongDoanhThu = details.reduce(
-                (sum, d) => sum + d.DOANHTHU, 0
-            );
+            const TongDoanhThu = details.length === 0
+            ? 0
+            : details.reduce((sum, d) => sum + d.DOANHTHU, 0);
 
             // 3. Sinh mã BCDTxxxx
-            const [[row]] = await conn.query(
+            const [[row]] = await db.query(
                 "SELECT MaBCDT FROM BAOCAODOANHTHU ORDER BY MaBCDT DESC LIMIT 1"
             );
 
@@ -51,7 +42,7 @@ class RevenueReportService {
             }
 
             // 4. Insert báo cáo
-            await conn.query(
+            await db.query(
                 `INSERT INTO BAOCAODOANHTHU
                  (MaBCDT, THANG, NAM, TongDoanhThu)
                  VALUES (?, ?, ?, ?)`,
@@ -60,47 +51,92 @@ class RevenueReportService {
 
             // 5. Insert chi tiết
             for (const d of details) {
-                const TyLe = (d.DOANHTHU / TongDoanhThu) * 100;
+                const TyLe = TongDoanhThu === 0 ? 0 : (d.DOANHTHU / TongDoanhThu) * 100;
 
-                await conn.query(
+                await db.query(
                     `INSERT INTO CT_BCDT
-                     (MaBCDT, Ngay, SoBenhNhan, DOANHTHU, TyLe)
-                     VALUES (?, ?, ?, ?, ?)`,
+                    (MaBCDT, Ngay, SoBenhNhan, DOANHTHU, TyLe)
+                    VALUES (?, ?, ?, ?, ?)`,
                     [MaBCDT, d.Ngay, d.SoBenhNhan, d.DOANHTHU, TyLe]
                 );
             }
 
-            await conn.commit();
             return { MaBCDT, Thang, Nam, TongDoanhThu };
         }
         catch (error) {
-            await conn.rollback();
             console.log("RevenueReport create Error:", error);
             return null;
         }
-        finally {
-            conn.release();
+    }
+
+    static async getReports() {
+        try {
+            const [rows] = await db.query(`
+                SELECT
+                    MaBCDT,
+                    THANG,
+                    NAM,
+                    TongDoanhThu
+                FROM BAOCAODOANHTHU
+                ORDER BY NAM DESC, THANG DESC
+            `);
+            return rows;
+        }
+        catch (error) {
+            console.log("RevenueReport getReports Error:", error);
+            return null;
+        }
+    }
+
+    static async getReportDetail(MaBCDT) {
+        try {
+            const [[report]] = await db.query(
+                `SELECT MaBCDT, THANG, NAM, TongDoanhThu
+                FROM BAOCAODOANHTHU
+                WHERE MaBCDT = ?`,
+                [MaBCDT]
+            );
+
+            if (!report) {
+                return { error: "NOT_FOUND" };
+            }
+
+            const [details] = await db.query(`
+                SELECT
+                    Ngay,
+                    SoBenhNhan,
+                    DOANHTHU,
+                    TyLe
+                FROM CT_BCDT
+                WHERE MaBCDT = ?
+                ORDER BY Ngay
+            `, [MaBCDT]);
+
+            return {
+                ...report,
+                ChiTiet: details
+            };
+        }
+        catch (error) {
+            console.log("RevenueReport getReportDetail Error:", error);
+            return null;
         }
     }
 
     static async updateReport(MaBCDT) {
-        const conn = await db.getConnection();
         try {
-            await conn.beginTransaction();
-
-            const [[report]] = await conn.query(
+            const [[report]] = await db.query(
                 "SELECT THANG, NAM FROM BAOCAODOANHTHU WHERE MaBCDT = ?",
                 [MaBCDT]
             );
 
             if (!report) {
-                await conn.rollback();
                 return { error: "NOT_FOUND" };
             }
 
             const { THANG, NAM } = report;
 
-            const [details] = await conn.query(`
+            const [details] = await db.query(`
                 SELECT 
                     NgayTHANHTOAN AS Ngay,
                     COUNT(DISTINCT MaPKB) AS SoBenhNhan,
@@ -112,11 +148,10 @@ class RevenueReportService {
             `, [THANG, NAM]);
 
             if (details.length === 0) {
-                await conn.rollback();
                 return { error: "NO_DATA" };
             }
 
-            await conn.query(
+            await db.query(
                 "DELETE FROM CT_BCDT WHERE MaBCDT = ?",
                 [MaBCDT]
             );
@@ -125,7 +160,7 @@ class RevenueReportService {
                 (sum, d) => sum + d.DOANHTHU, 0
             );
 
-            await conn.query(
+            await db.query(
                 "UPDATE BAOCAODOANHTHU SET TongDoanhThu = ? WHERE MaBCDT = ?",
                 [TongDoanhThu, MaBCDT]
             );
@@ -133,62 +168,47 @@ class RevenueReportService {
             for (const d of details) {
                 const TyLe = (d.DOANHTHU / TongDoanhThu) * 100;
 
-                await conn.query(
+                await db.query(
                     `INSERT INTO CT_BCDT
                      (MaBCDT, Ngay, SoBenhNhan, DOANHTHU, TyLe)
                      VALUES (?, ?, ?, ?, ?)`,
                     [MaBCDT, d.Ngay, d.SoBenhNhan, d.DOANHTHU, TyLe]
                 );
             }
-
-            await conn.commit();
             return true;
         }
         catch (error) {
-            await conn.rollback();
             console.log("RevenueReport update Error:", error);
             return null;
-        }
-        finally {
-            conn.release();
         }
     }
 
     static async deleteReport(MaBCDT) {
-        const conn = await db.getConnection();
         try {
-            await conn.beginTransaction();
-
-            const [[exist]] = await conn.query(
+            const [[exist]] = await db.query(
                 "SELECT MaBCDT FROM BAOCAODOANHTHU WHERE MaBCDT = ?",
                 [MaBCDT]
             );
 
             if (!exist) {
-                await conn.rollback();
                 return { error: "NOT_FOUND" };
             }
 
-            await conn.query(
+            await db.query(
                 "DELETE FROM CT_BCDT WHERE MaBCDT = ?",
                 [MaBCDT]
             );
 
-            await conn.query(
+            await db.query(
                 "DELETE FROM BAOCAODOANHTHU WHERE MaBCDT = ?",
                 [MaBCDT]
             );
 
-            await conn.commit();
             return true;
         }
         catch (error) {
-            await conn.rollback();
             console.log("RevenueReport delete Error:", error);
             return null;
-        }
-        finally {
-            conn.release();
         }
     }
 }
