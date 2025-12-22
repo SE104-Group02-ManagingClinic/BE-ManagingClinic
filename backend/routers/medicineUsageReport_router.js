@@ -59,6 +59,8 @@ const controller = require('../controllers/medicineUsageReport_controller');
  *               Nam: 2025
  *       400:
  *         description: Thiếu tháng hoặc năm
+ *       409:
+ *         description: Báo cáo tháng này đã tồn tại
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */

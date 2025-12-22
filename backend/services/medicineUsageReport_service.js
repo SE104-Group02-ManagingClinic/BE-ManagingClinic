@@ -2,10 +2,7 @@ const db = require('../config/database');
 
 class MedicineUsageReportService {
     static async createReport({ Thang, Nam }) {
-        // const conn = await db.getConnection();
         try {
-            // await conn.beginTransaction();
-
             // 0. Check đã tồn tại báo cáo tháng/năm chưa
             const [[existed]] = await db.query(
                 "SELECT MaBCSDT FROM BAOCAOSUDUNGTHUOC WHERE Thang = ? AND Nam = ?",
@@ -29,10 +26,6 @@ class MedicineUsageReportService {
                 GROUP BY ct.MaThuoc
             `, [Thang, Nam]);
 
-            if (details.length === 0) {
-                return { error: "NO_DATA" };
-            }
-
             // 2. Sinh mã BCSDTxxx
             const [[row]] = await db.query(
                 "SELECT MaBCSDT FROM BAOCAOSUDUNGTHUOC ORDER BY MaBCSDT DESC LIMIT 1"
@@ -51,15 +44,17 @@ class MedicineUsageReportService {
             );
 
             // 4. Insert chi tiết
-            for (const d of details) {
-                await db.query(
-                    `INSERT INTO CT_BCSDT
-                    (MaBCSDT, MaThuoc, SoLanDung, SoLuongDung)
-                    VALUES (?, ?, ?, ?)`,
-                    [MaBCSDT, d.MaThuoc, d.SoLanDung, d.SoLuongDung]
-                );
+            if (details.length > 0) {
+                for (const d of details) {
+                    await db.query(
+                        `INSERT INTO CT_BCSDT
+                        (MaBCSDT, MaThuoc, SoLanDung, SoLuongDung)
+                        VALUES (?, ?, ?, ?)`,
+                        [MaBCSDT, d.MaThuoc, d.SoLanDung, d.SoLuongDung]
+                    );
+                }
             }
-
+            
             return { MaBCSDT, Thang, Nam };
         }
         catch (error) {

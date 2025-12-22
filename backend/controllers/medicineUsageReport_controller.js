@@ -18,12 +18,6 @@ exports.createReport = async (req, res) => {
             });
         }
 
-        if (result?.error === "NO_DATA") {
-            return res.status(400).json({
-                message: "Không có dữ liệu thuốc sử dụng trong tháng này"
-            });
-        }
-
         if (!result) {
             return res.status(500).json({ error: "Internal Server Error" });
         }
