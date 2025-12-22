@@ -4,6 +4,17 @@ class RevenueReportService {
 
     static async createReport({ Thang, Nam }) {
         try {
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1;
+            const currentYear = now.getFullYear();
+
+            if (
+                Nam > currentYear ||
+                (Nam === currentYear && Thang > currentMonth)
+            ) {
+                return { error: "INVALID_TIME" };
+            }
+
             // 1. Check trùng báo cáo
             const [[exist]] = await db.query(
                 "SELECT MaBCDT FROM BAOCAODOANHTHU WHERE THANG = ? AND NAM = ?",

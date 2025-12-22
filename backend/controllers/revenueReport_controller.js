@@ -12,6 +12,12 @@ exports.createReport = async (req, res) => {
 
         const result = await Service.createReport({ Thang, Nam });
 
+        if (result?.error === "INVALID_TIME") {
+            return res.status(400).json({
+                message: "Không được lập báo cáo cho tháng/năm trong tương lai"
+            });
+        }
+
         if (result?.error === "EXISTED_REPORT") {
             return res.status(409).json({
                 message: "Báo cáo doanh thu tháng này đã tồn tại"
