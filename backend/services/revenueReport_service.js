@@ -123,6 +123,44 @@ class RevenueReportService {
         }
     }
 
+    static async searchReports(filters) {
+        try {
+            const { Thang, Nam } = filters || {};
+
+            let sql = `
+                SELECT
+                    MaBCDT,
+                    THANG,
+                    NAM,
+                    TongDoanhThu
+                FROM BAOCAODOANHTHU
+                WHERE 1=1
+            `;
+
+            const params = [];
+
+            if (Thang) {
+                sql += " AND THANG = ?";
+                params.push(Thang);
+            }
+
+            if (Nam) {
+                sql += " AND NAM = ?";
+                params.push(Nam);
+            }
+
+            sql += " ORDER BY NAM DESC, THANG DESC";
+
+            const [rows] = await db.query(sql, params);
+            return rows;
+        }
+        catch (error) {
+            console.log("RevenueReport searchReports Error:", error);
+            return null;
+        }
+    }
+
+
     static async updateReport(MaBCDT) {
         try {
             const [[report]] = await db.query(

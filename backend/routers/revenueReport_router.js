@@ -135,6 +135,54 @@ router.get(
 
 /**
  * =====================================================
+ *  TÌM KIẾM BÁO CÁO DOANH THU
+ * =====================================================
+ */
+/**
+ * @swagger
+ * /revenueReport/search:
+ *   get:
+ *     summary: Tìm kiếm báo cáo doanh thu theo tháng/năm
+ *     description: |
+ *       Trả về danh sách báo cáo doanh thu (KHÔNG bao gồm chi tiết).
+ *       Có thể tìm theo:
+ *       - Tháng
+ *       - Năm
+ *       - Hoặc cả tháng và năm
+ *     tags:
+ *       - RevenueReport
+ *     parameters:
+ *       - in: query
+ *         name: Thang
+ *         schema:
+ *           type: integer
+ *         example: 12
+ *       - in: query
+ *         name: Nam
+ *         schema:
+ *           type: integer
+ *         example: 2025
+ *     responses:
+ *       200:
+ *         description: Danh sách báo cáo doanh thu
+ *         content:
+ *           application/json:
+ *             example:
+ *               - MaBCDT: BCDT0001
+ *                 THANG: 12
+ *                 NAM: 2025
+ *                 TongDoanhThu: 35000000
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/search',
+    revenueReportController.searchReports
+);
+
+
+/**
+ * =====================================================
  *  CẬP NHẬT (TÁI TỔNG HỢP) BÁO CÁO DOANH THU
  * =====================================================
  */
