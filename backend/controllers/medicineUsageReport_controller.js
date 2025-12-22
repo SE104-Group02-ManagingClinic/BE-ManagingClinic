@@ -84,6 +84,33 @@ exports.getReportDetail = async (req, res) => {
     }
 };
 
+exports.searchReports = async (req, res) => {
+    try {
+        const { Thang, Nam } = req.query;
+
+        const filters = {
+            Thang: Thang ? Number(Thang) : undefined,
+            Nam: Nam ? Number(Nam) : undefined
+        };
+
+        const rows = await Service.searchReports(filters);
+
+        if (!rows) {
+            return res.status(500).json({
+                error: "Internal Server Error"
+            });
+        }
+
+        return res.status(200).json(rows);
+    }
+    catch (error) {
+        console.error("Error searchReports:", error);
+        return res.status(500).json({
+            error: "Internal Server Error"
+        });
+    }
+};
+
 exports.updateReport = async (req, res) => {
     try {
         const { MaBCSDT } = req.params;

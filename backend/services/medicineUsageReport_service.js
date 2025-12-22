@@ -122,6 +122,42 @@ class MedicineUsageReportService {
         }
     }
 
+    static async searchReports(filters) {
+        try {
+            const { Thang, Nam } = filters || {};
+
+            let sql = `
+                SELECT
+                    MaBCSDT,
+                    Thang,
+                    Nam
+                FROM BAOCAOSUDUNGTHUOC
+                WHERE 1=1
+            `;
+
+            const params = [];
+
+            if (Thang) {
+                sql += ` AND Thang = ?`;
+                params.push(Thang);
+            }
+
+            if (Nam) {
+                sql += ` AND Nam = ?`;
+                params.push(Nam);
+            }
+
+            sql += ` ORDER BY Nam DESC, Thang DESC`;
+
+            const [rows] = await db.query(sql, params);
+            return rows;
+        }
+        catch (error) {
+            console.log("MedicineUsageReport searchReports Error:", error);
+            return null;
+        }
+    }
+
     static async updateReport(MaBCSDT) {
         try {
             const [[report]] = await db.query(

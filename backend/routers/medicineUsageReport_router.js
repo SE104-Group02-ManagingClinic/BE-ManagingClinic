@@ -129,6 +129,54 @@ router.get(
 );
 
 /* =====================================================
+   TÌM KIẾM BÁO CÁO SỬ DỤNG THUỐC
+   ===================================================== */
+/**
+ * @swagger
+ * /medicineUsageReport/searchReports:
+ *   get:
+ *     summary: Tìm kiếm báo cáo sử dụng thuốc theo tháng / năm
+ *     description: |
+ *       Tìm kiếm báo cáo sử dụng thuốc theo:
+ *       - Tháng
+ *       - Năm
+ *       - Hoặc Tháng + Năm
+ *
+ *       ❗ Không trả chi tiết (CT_BCSDT).
+ *       Dùng API getReportDetail để xem chi tiết.
+ *     tags:
+ *       - MedicineUsageReport
+ *     parameters:
+ *       - in: query
+ *         name: Thang
+ *         schema:
+ *           type: integer
+ *         description: Tháng cần tìm
+ *         example: 12
+ *       - in: query
+ *         name: Nam
+ *         schema:
+ *           type: integer
+ *         description: Năm cần tìm
+ *         example: 2025
+ *     responses:
+ *       200:
+ *         description: Danh sách báo cáo phù hợp
+ *         content:
+ *           application/json:
+ *             example:
+ *               - MaBCSDT: BCSDT001
+ *                 Thang: 12
+ *                 Nam: 2025
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get(
+    '/searchReports',
+    controller.searchReports
+);
+
+/* =====================================================
    CẬP NHẬT (TÁI TỔNG HỢP) BÁO CÁO
    ===================================================== */
 /**
