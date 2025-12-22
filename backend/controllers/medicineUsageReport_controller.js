@@ -18,12 +18,6 @@ exports.createReport = async (req, res) => {
             });
         }
 
-        if (result?.error === "NO_DATA") {
-            return res.status(400).json({
-                message: "Không có dữ liệu thuốc sử dụng trong tháng này"
-            });
-        }
-
         if (!result) {
             return res.status(500).json({ error: "Internal Server Error" });
         }
@@ -78,6 +72,33 @@ exports.getReportDetail = async (req, res) => {
     }
     catch (error) {
         console.error("Error getReportDetail:", error);
+        return res.status(500).json({
+            error: "Internal Server Error"
+        });
+    }
+};
+
+exports.searchReports = async (req, res) => {
+    try {
+        const { Thang, Nam } = req.query;
+
+        const filters = {
+            Thang: Thang ? Number(Thang) : undefined,
+            Nam: Nam ? Number(Nam) : undefined
+        };
+
+        const rows = await Service.searchReports(filters);
+
+        if (!rows) {
+            return res.status(500).json({
+                error: "Internal Server Error"
+            });
+        }
+
+        return res.status(200).json(rows);
+    }
+    catch (error) {
+        console.error("Error searchReports:", error);
         return res.status(500).json({
             error: "Internal Server Error"
         });
