@@ -10,7 +10,17 @@ exports.createReport = async (req, res) => {
             });
         }
 
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // JS month: 0-11
+        const currentYear = now.getFullYear();
+
         const result = await Service.createReport({ Thang, Nam });
+
+        if (result?.error === "INVALID_TIME") {
+            return res.status(400).json({
+                message: "Không được lập báo cáo cho tháng/năm trong tương lai"
+            });
+        }
 
         if (result?.error === "EXISTED_REPORT") {
             return res.status(409).json({
