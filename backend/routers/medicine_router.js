@@ -109,6 +109,59 @@ router.post('/createMedicine', medicineController.createMedicine);
  */
 router.get('/getMedicine', medicineController.getMedicine);
 
+// Tìm kiếm thuốc theo tiêu chuẩn
+/**
+ * @swagger
+ * /medicine/searchMedicine:
+ *   get:
+ *     summary: Tìm kiếm thuốc theo tiêu chuẩn
+ *     description: Tìm kiếm thuốc theo Tên thuốc và Đơn vị tính
+ *     tags:
+ *       - Medicine
+ *     parameters:
+ *       - in: query
+ *         name: TenThuoc
+ *         schema:
+ *           type: string
+ *         description: Tìm theo tên thuốc (partial match)
+ *       - in: query
+ *         name: TenDVT
+ *         schema:
+ *           type: string
+ *         description: Tên đơn vị tính (partial match)
+ *       
+ *     responses:
+ *       200:
+ *         description: Kết quả tìm kiếm
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   MaThuoc:
+ *                     type: string
+ *                   TenThuoc:
+ *                     type: string
+ *                   CongDung:
+ *                     type: string
+ *                   TenCachDung:
+ *                     type: string
+ *                   TenDVT:
+ *                     type: string
+ *                   TacDungPhu:
+ *                     type: string
+ *                   SoLuongTon:
+ *                     type: integer
+ *                   GiaBan:
+ *                     type: number
+ *                   
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.get('/searchMedicine', medicineController.searchMedicine);
+
 // Cập nhật thuốc
 /**
  * @swagger

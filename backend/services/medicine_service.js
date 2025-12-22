@@ -111,6 +111,51 @@ class MedicineService {
         }
     }
 
+    // Tìm kiếm thuốc theo tiêu chuẩn (Tên thuốc, Đơn vị tính, Tình trạng)
+    static async searchMedicine(filters) {
+        try {
+            const { TenThuoc, TenDVT } = filters || {};
+
+            let sql = `
+                SELECT
+                    t.MaThuoc,
+                    t.TenThuoc,
+                    t.CongDung,
+                    c.TenCachDung,
+                    d.TenDVT,
+                    t.TacDungPhu,
+                    t.SoLuongTon,
+                    t.GiaBan
+                FROM LOAITHUOC t
+                LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
+                LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
+                WHERE 1=1
+            `;
+
+            const params = [];
+
+            if (TenThuoc) {
+                sql += ` AND t.TenThuoc LIKE ? COLLATE utf8mb4_unicode_ci`;
+                params.push(`%${TenThuoc}%`);
+            }
+
+            if (TenDVT) {
+                sql += ` AND d.TenDVT LIKE ? COLLATE utf8mb4_unicode_ci`;
+                params.push(`%${TenDVT}%`);
+            }
+
+            sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)`;
+
+            const [rows] = await db.query(sql, params);
+            return rows;
+        }
+        catch (error) {
+            console.log("MedicineService searchMedicine Error:", error);
+            return null;
+        }
+    }
+
+
     // Cập nhật thuốc
     static async updateMedicine(MaThuoc, updateData) {
         try {
