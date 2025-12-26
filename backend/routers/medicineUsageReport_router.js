@@ -5,12 +5,7 @@ const controller = require('../controllers/medicineUsageReport_controller');
  * @swagger
  * tags:
  *   name: MedicineUsageReport
- *   description: |
- *     API báo cáo sử dụng thuốc.
- *     Dữ liệu báo cáo được TỰ ĐỘNG TỔNG HỢP từ:
- *     - PHIEUKHAMBENH
- *     - CT_THUOC
- *     Người dùng KHÔNG nhập chi tiết thủ công.
+ *   description: API quản lý báo cáo sử dụng thuốc
  */
 
 /* =====================================================
@@ -22,12 +17,8 @@ const controller = require('../controllers/medicineUsageReport_controller');
  *   post:
  *     summary: Tạo báo cáo sử dụng thuốc theo tháng/năm
  *     description: |
- *       API này sẽ:
- *       1. Tạo mới một báo cáo sử dụng thuốc (BAOCAOSUDUNGTHUOC)
- *       2. Tự động tổng hợp dữ liệu từ CT_THUOC + PHIEUKHAMBENH
- *       3. Sinh chi tiết báo cáo (CT_BCSDT)
- *
- *       ❗ Không cho phép nhập chi tiết thủ công.
+ *       API này sẽ tạo mới một báo cáo sử dụng thuốc
+ *       Tự động tổng hợp dữ liệu từ CT_THUOC + PHIEUKHAMBENH
  *     tags:
  *       - MedicineUsageReport
  *     requestBody:
@@ -138,14 +129,7 @@ router.get(
  * /medicineUsageReport/searchReports:
  *   get:
  *     summary: Tìm kiếm báo cáo sử dụng thuốc theo tháng / năm
- *     description: |
- *       Tìm kiếm báo cáo sử dụng thuốc theo:
- *       - Tháng
- *       - Năm
- *       - Hoặc Tháng + Năm
- *
- *       ❗ Không trả chi tiết (CT_BCSDT).
- *       Dùng API getReportDetail để xem chi tiết.
+ *     description: Không trả chi tiết (CT_BCSDT).
  *     tags:
  *       - MedicineUsageReport
  *     parameters:
@@ -186,14 +170,7 @@ router.get(
  * /medicineUsageReport/updateReport/{MaBCSDT}:
  *   put:
  *     summary: Cập nhật (tái tổng hợp) báo cáo sử dụng thuốc
- *     description: |
- *       API này KHÔNG sửa tay số liệu.
- *       Nó sẽ:
- *       1. Xóa toàn bộ chi tiết báo cáo cũ (CT_BCSDT)
- *       2. Tổng hợp lại dữ liệu mới nhất từ CT_THUOC
- *       3. Ghi lại chi tiết báo cáo mới
- *
- *       👉 Dùng khi có thay đổi đơn thuốc trong tháng.
+ *     description: API này sẽ cập nhật tự động
  *     tags:
  *       - MedicineUsageReport
  *     parameters:
@@ -230,11 +207,7 @@ router.put(
  *   delete:
  *     summary: Xóa báo cáo sử dụng thuốc
  *     description: |
- *       API này sẽ:
- *       - Xóa chi tiết báo cáo (CT_BCSDT)
- *       - Xóa báo cáo tổng hợp (BAOCAOSUDUNGTHUOC)
- *
- *       ❗ Không ảnh hưởng đến dữ liệu đơn thuốc gốc.
+ *       API này sẽ xóa báo cáo sử dụng thuốc
  *     tags:
  *       - MedicineUsageReport
  *     parameters:

@@ -8,12 +8,7 @@ const revenueReportController = require('../controllers/revenueReport_controller
  * @swagger
  * tags:
  *   name: RevenueReport
- *   description: |
- *     Các API liên quan tới BÁO CÁO DOANH THU.
- *     
- *     🔹 Dữ liệu báo cáo được TỰ ĐỘNG TỔNG HỢP từ bảng HOADONTHANHTOAN  
- *     🔹 KHÔNG cho phép nhập hoặc chỉnh sửa chi tiết thủ công  
- *     🔹 Mỗi tháng + năm chỉ tồn tại 1 báo cáo doanh thu
+ *   description: Các API liên quan tới BÁO CÁO DOANH THU
  */
 
 /**
@@ -28,14 +23,6 @@ const revenueReportController = require('../controllers/revenueReport_controller
  *     summary: Tạo báo cáo doanh thu
  *     description: |
  *       API tạo báo cáo doanh thu cho một tháng – năm.
- *       
- *       Quy trình xử lý:
- *       1️⃣ Kiểm tra tháng/năm đã có báo cáo hay chưa  
- *       2️⃣ Tổng hợp dữ liệu từ bảng HOADONTHANHTOAN  
- *       3️⃣ Tạo báo cáo tổng hợp (BAOCAODOANHTHU)  
- *       4️⃣ Tạo chi tiết báo cáo theo ngày (CT_BCDT)
- *       
- *       ❗ Nếu tháng đó không có hóa đơn → KHÔNG tạo báo cáo
  *     tags:
  *       - RevenueReport
  *     requestBody:
@@ -192,14 +179,7 @@ router.get(
  *   put:
  *     summary: Cập nhật báo cáo doanh thu
  *     description: |
- *       API dùng khi dữ liệu hóa đơn trong tháng có thay đổi.
- *       
- *       Quy trình:
- *       1️⃣ Xóa toàn bộ chi tiết báo cáo cũ (CT_BCDT)  
- *       2️⃣ Tổng hợp lại dữ liệu mới nhất từ HOADONTHANHTOAN  
- *       3️⃣ Cập nhật tổng doanh thu + chi tiết theo ngày
- *       
- *       ❗ Không cho chỉnh sửa thủ công số liệu
+ *       API dùng khi dữ liệu hóa đơn trong tháng có thay đổi(tự động cập nhật, người dùng không chỉnh sửa số liệu thủ công).
  *     tags:
  *       - RevenueReport
  *     parameters:
@@ -241,12 +221,6 @@ router.put(
  *     summary: Xóa báo cáo doanh thu
  *     description: |
  *       Xóa hoàn toàn một báo cáo doanh thu khỏi hệ thống.
- *       
- *       Quy trình:
- *       1️⃣ Xóa chi tiết báo cáo (CT_BCDT)  
- *       2️⃣ Xóa báo cáo tổng hợp (BAOCAODOANHTHU)
- *       
- *       ❗ Không ảnh hưởng đến dữ liệu hóa đơn gốc
  *     tags:
  *       - RevenueReport
  *     parameters:
