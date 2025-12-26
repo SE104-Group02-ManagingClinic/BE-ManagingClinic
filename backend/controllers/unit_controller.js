@@ -75,6 +75,13 @@ exports.deleteUnit = async (req, res) => {
             return res.status(400).json({ error: 'Thiếu mã đơn vị tính cần xóa' });
         }
 
+        const check = await UnitService.canDeleteUnit(MaDVT);
+        if (!check.ok) {
+            return res.status(400).json({
+                message: check.message
+            });
+        }
+
         const result = await UnitService.deleteUnit(MaDVT);
 
         if (result === null) {

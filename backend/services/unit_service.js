@@ -85,6 +85,31 @@ class UnitService {
         }
     }
 
+    static async canDeleteUnit(MaDVT) {
+        try {
+            const [[used]] = await db.query(
+                "SELECT 1 FROM LOAITHUOC WHERE MaDVT = ? LIMIT 1",
+                [MaDVT]
+            );
+
+            if (used) {
+                return {
+                    ok: false,
+                    message: "Đơn vị tính đã được sử dụng trong loại thuốc, không thể xóa"
+                };
+            }
+
+            return { ok: true };
+        }
+        catch (error) {
+            console.log("UnitService canDeleteUnit Error:", error);
+            return {
+                ok: false,
+                message: "Lỗi kiểm tra đơn vị tính"
+            };
+        }
+    }
+
     // Kiểm tra tên đơn vị tính đã tồn tại chưa
     static async existedUnit(ten_dvt) {
         try {
