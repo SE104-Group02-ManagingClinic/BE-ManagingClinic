@@ -18,15 +18,6 @@ const medicineController = require('../controllers/medicine_controller');
  *     summary: Tạo mới thuốc
  *     description: |
  *       Thêm một loại thuốc mới vào hệ thống.
- * 
- * 
- *       ❗ Khi tạo mới:
- *       - Số lượng tồn kho mặc định = 0
- *       - Giá bán mặc định = 0
- *       
- *       Hai giá trị này sẽ được cập nhật thông qua:
- *       - Phiếu nhập thuốc
- *       - Chức năng cập nhật giá bán
  *     tags:
  *       - Medicine
  *     requestBody:
