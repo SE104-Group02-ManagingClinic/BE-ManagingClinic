@@ -177,6 +177,8 @@ router.put('/updateUnit/:MaDVT', unitController.updateUnit);
  *     responses:
  *       200:
  *         description: Xóa thành công
+ *       400:
+ *         description: Đơn vị tính đã được sử dụng
  *       404:
  *         description: Không tìm thấy đơn vị tính để xóa
  *       500:
