@@ -5,12 +5,7 @@ const controller = require('../controllers/medicineUsageReport_controller');
  * @swagger
  * tags:
  *   name: MedicineUsageReport
- *   description: |
- *     API báo cáo sử dụng thuốc.
- *     Dữ liệu báo cáo được TỰ ĐỘNG TỔNG HỢP từ:
- *     - PHIEUKHAMBENH
- *     - CT_THUOC
- *     Người dùng KHÔNG nhập chi tiết thủ công.
+ *   description: API quản lý báo cáo sử dụng thuốc
  */
 
 /* =====================================================

@@ -8,12 +8,7 @@ const revenueReportController = require('../controllers/revenueReport_controller
  * @swagger
  * tags:
  *   name: RevenueReport
- *   description: |
- *     Các API liên quan tới BÁO CÁO DOANH THU.
- *     
- *     🔹 Dữ liệu báo cáo được TỰ ĐỘNG TỔNG HỢP từ bảng HOADONTHANHTOAN  
- *     🔹 KHÔNG cho phép nhập hoặc chỉnh sửa chi tiết thủ công  
- *     🔹 Mỗi tháng + năm chỉ tồn tại 1 báo cáo doanh thu
+ *   description: Các API liên quan tới BÁO CÁO DOANH THU
  */
 
 /**
