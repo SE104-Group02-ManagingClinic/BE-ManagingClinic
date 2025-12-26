@@ -1,49 +1,57 @@
 const db = require('../config/database');
 
 class MedicineService {
-    // Kiểm tra khóa ngoại trước khi thêm thuốc
+
+    /* =====================================================
+       KIỂM TRA KHÓA NGOẠI
+       ===================================================== */
     static async checkForeignKey(MaDVT, MaCachDung) {
         try {
             const [[dvt]] = await db.query(
                 "SELECT MaDVT FROM DONVITINH WHERE MaDVT = ?",
                 [MaDVT]
             );
-
             if (!dvt) {
-                return {
-                    ok: false,
-                    code: 400,
-                    message: "Đơn vị tính không tồn tại"
-                };
+                return { ok: false, code: 400, message: "Đơn vị tính không tồn tại" };
             }
 
             const [[cd]] = await db.query(
                 "SELECT MaCachDung FROM CACHDUNG WHERE MaCachDung = ?",
                 [MaCachDung]
             );
-
             if (!cd) {
-                return {
-                    ok: false,
-                    code: 400,
-                    message: "Cách dùng không tồn tại"
-                };
+                return { ok: false, code: 400, message: "Cách dùng không tồn tại" };
             }
 
             return { ok: true };
         }
         catch (error) {
-            console.log("MedicineService checkForeignKey Error:", error);
-            return {
-                ok: false,
-                code: 500,
-                message: "Lỗi kiểm tra khóa ngoại"
-            };
+            console.log("checkForeignKey Error:", error);
+            return { ok: false, code: 500, message: "Lỗi kiểm tra khóa ngoại" };
         }
     }
 
+    /* =====================================================
+       KIỂM TRA TRÙNG THUỐC THEO TÊN + SỐ LÔ
+       ===================================================== */
+    static async existedMedicine(TenThuoc, SoLo) {
+        try {
+            const [[row]] = await db.query(
+                `SELECT 1 FROM LOAITHUOC 
+                 WHERE LOWER(TenThuoc) = LOWER(?) AND SoLo = ?`,
+                [TenThuoc, SoLo]
+            );
+            return !!row;
+        }
+        catch (error) {
+            console.log("existedMedicine Error:", error);
+            return false;
+        }
+    }
 
-    // Tạo thuốc mới
+    /* =====================================================
+       TẠO THUỐC MỚI (THEO LÔ)
+       ===================================================== */
     static async createMedicine(data) {
         try {
             const {
@@ -52,48 +60,55 @@ class MedicineService {
                 MaCachDung,
                 MaDVT,
                 TacDungPhu,
-                SoLuongTon,
-                GiaBan
+                SoLo,
+                HanSuDung
             } = data;
 
-            // Lấy mã thuốc cuối
-            const [rows] = await db.query(
-                "SELECT MaThuoc FROM LOAITHUOC ORDER BY CAST(SUBSTRING(MaThuoc, 3) AS UNSIGNED) DESC LIMIT 1"
+            // Sinh MaThuoc mới
+            const [[row]] = await db.query(
+                "SELECT MaThuoc FROM LOAITHUOC ORDER BY CAST(SUBSTRING(MaThuoc,3) AS UNSIGNED) DESC LIMIT 1"
             );
 
-            let lastId = "";
-            if (rows.length > 0) lastId = rows[0].MaThuoc;
-
-            const nextId = this.createId(lastId);
+            let MaThuoc = "LT001";
+            if (row) {
+                const num = parseInt(row.MaThuoc.slice(2)) + 1;
+                MaThuoc = "LT" + num.toString().padStart(3, "0");
+            }
 
             const record = {
-                MaThuoc: nextId,
+                MaThuoc,
+                SoLo,
                 TenThuoc,
                 CongDung,
                 MaCachDung,
                 MaDVT,
                 TacDungPhu,
                 SoLuongTon: 0,
-                GiaBan: 0
+                GiaBan: 0,
+                HanSuDung
             };
 
             await db.query("INSERT INTO LOAITHUOC SET ?", [record]);
             return record;
         }
         catch (error) {
-            console.log("MedicineService createMedicine Error:", error);
+            console.log("createMedicine Error:", error);
             return null;
         }
     }
 
-    // Lấy danh sách thuốc
+    /* =====================================================
+       LẤY DANH SÁCH THUỐC (THEO LÔ)
+       ===================================================== */
     static async getMedicine() {
         try {
             const [rows] = await db.query(`
-                SELECT 
+                SELECT
                     t.MaThuoc,
+                    t.SoLo,
                     t.TenThuoc,
                     t.CongDung,
+                    t.HanSuDung,
                     d.TenDVT,
                     c.TenCachDung,
                     t.TacDungPhu,
@@ -102,27 +117,30 @@ class MedicineService {
                 FROM LOAITHUOC t
                 LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
                 LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
-                ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)
+                ORDER BY t.TenThuoc, t.SoLo
             `);
             return rows;
         }
         catch (error) {
-            console.log("MedicineService getMedicine Error:", error);
+            console.log("getMedicine Error:", error);
+            return null;
         }
     }
 
-    // Tìm kiếm thuốc theo tiêu chuẩn (Tên thuốc, Đơn vị tính, Tình trạng)
-    static async searchMedicine(filters) {
+    /* =====================================================
+       TÌM KIẾM THUỐC (TÊN / ĐVT / SỐ LÔ)
+       ===================================================== */
+    static async searchMedicine({ TenThuoc, TenDVT, SoLo }) {
         try {
-            const { TenThuoc, TenDVT } = filters || {};
-
             let sql = `
                 SELECT
                     t.MaThuoc,
+                    t.SoLo,
                     t.TenThuoc,
                     t.CongDung,
-                    c.TenCachDung,
+                    t.HanSuDung,
                     d.TenDVT,
+                    c.TenCachDung,
                     t.TacDungPhu,
                     t.SoLuongTon,
                     t.GiaBan
@@ -131,42 +149,35 @@ class MedicineService {
                 LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
                 WHERE 1=1
             `;
-
             const params = [];
 
             if (TenThuoc) {
-                sql += ` AND t.TenThuoc LIKE ? COLLATE utf8mb4_unicode_ci`;
+                sql += " AND t.TenThuoc LIKE ?";
                 params.push(`%${TenThuoc}%`);
             }
-
             if (TenDVT) {
-                sql += ` AND d.TenDVT LIKE ? COLLATE utf8mb4_unicode_ci`;
+                sql += " AND d.TenDVT LIKE ?";
                 params.push(`%${TenDVT}%`);
             }
-
-            sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)`;
+            if (SoLo) {
+                sql += " AND t.SoLo LIKE ?";
+                params.push(`%${SoLo}%`);
+            }
 
             const [rows] = await db.query(sql, params);
             return rows;
         }
         catch (error) {
-            console.log("MedicineService searchMedicine Error:", error);
+            console.log("searchMedicine Error:", error);
             return null;
         }
     }
 
-
-    // Cập nhật thuốc
-    static async updateMedicine(MaThuoc, updateData) {
+    /* =====================================================
+       CẬP NHẬT THUỐC THEO (MaThuoc + SoLo)
+       ===================================================== */
+    static async updateMedicine(MaThuoc, SoLo, data) {
         try {
-            const {
-                TenThuoc,
-                CongDung,
-                MaCachDung,
-                MaDVT,
-                TacDungPhu
-            } = updateData;
-
             const [rows] = await db.query(
                 `
                 UPDATE LOAITHUOC
@@ -175,16 +186,19 @@ class MedicineService {
                     CongDung = ?,
                     MaCachDung = ?,
                     MaDVT = ?,
-                    TacDungPhu = ?
-                WHERE MaThuoc = ?
+                    TacDungPhu = ?,
+                    HanSuDung = ?
+                WHERE MaThuoc = ? AND SoLo = ?
                 `,
                 [
-                    TenThuoc,
-                    CongDung,
-                    MaCachDung,
-                    MaDVT,
-                    TacDungPhu,
-                    MaThuoc
+                    data.TenThuoc,
+                    data.CongDung,
+                    data.MaCachDung,
+                    data.MaDVT,
+                    data.TacDungPhu,
+                    data.HanSuDung,
+                    MaThuoc,
+                    SoLo
                 ]
             );
 
@@ -192,85 +206,47 @@ class MedicineService {
             return true;
         }
         catch (error) {
-            console.log("MedicineService updateMedicine Error:", error);
+            console.log("updateMedicine Error:", error);
             return null;
         }
     }
 
-    static async canDeleteMedicine(MaThuoc) {
+    /* =====================================================
+       KIỂM TRA XÓA THUỐC THEO LÔ
+       ===================================================== */
+    static async canDeleteMedicine(MaThuoc, SoLo) {
         try {
-            const [[ctThuoc]] = await db.query(
-                "SELECT 1 FROM CT_THUOC WHERE MaThuoc = ? LIMIT 1",
-                [MaThuoc]
+            const [[used]] = await db.query(
+                "SELECT 1 FROM CT_THUOC WHERE MaThuoc = ? AND SoLo = ? LIMIT 1",
+                [MaThuoc, SoLo]
             );
-
-            if (ctThuoc) {
-                return {
-                    ok: false,
-                    message: "Không thể xóa thuốc đã được sử dụng trong đơn thuốc"
-                };
+            if (used) {
+                return { ok: false, message: "Thuốc đã được sử dụng trong đơn thuốc" };
             }
-
-            const [[pnt]] = await db.query(
-                "SELECT 1 FROM PHIEUNHAPTHUOC WHERE MaThuoc = ? LIMIT 1",
-                [MaThuoc]
-            );
-
-            if (pnt) {
-                return {
-                    ok: false,
-                    message: "Không thể xóa thuốc đã có phiếu nhập"
-                };
-            }
-
             return { ok: true };
         }
         catch (error) {
-            console.log("MedicineService canDeleteMedicine Error:", error);
-            return {
-                ok: false,
-                message: "Lỗi kiểm tra trước khi xóa"
-            };
+            console.log("canDeleteMedicine Error:", error);
+            return { ok: false, message: "Lỗi kiểm tra trước khi xóa" };
         }
     }
 
-    // Xóa thuốc
-    static async deleteMedicine(MaThuoc) {
+    /* =====================================================
+       XÓA THUỐC THEO LÔ
+       ===================================================== */
+    static async deleteMedicine(MaThuoc, SoLo) {
         try {
             const [rows] = await db.query(
-                "DELETE FROM LOAITHUOC WHERE MaThuoc = ?",
-                [MaThuoc]
+                "DELETE FROM LOAITHUOC WHERE MaThuoc = ? AND SoLo = ?",
+                [MaThuoc, SoLo]
             );
-
             if (rows.affectedRows === 0) return false;
             return true;
         }
         catch (error) {
-            console.log("MedicineService deleteMedicine Error:", error);
+            console.log("deleteMedicine Error:", error);
+            return null;
         }
-    }
-
-    // Kiểm tra tên thuốc tồn tại
-    static async existedMedicine(tenThuoc) {
-        try {
-            const [rows] = await db.query(
-                "SELECT TenThuoc FROM LOAITHUOC WHERE LOWER(TenThuoc) = LOWER(?)",
-                [tenThuoc]
-            );
-            return rows.length > 0;
-        }
-        catch (error) {
-            console.log("MedicineService existedMedicine Error:", error);
-            return false;
-        }
-    }
-
-    // Tạo mã thuốc mới
-    static createId(lastId) {
-        if (!lastId) return "LT001";
-
-        const number = parseInt(lastId.slice(2), 10) + 1;
-        return "LT" + number.toString().padStart(3, "0");
     }
 }
 
