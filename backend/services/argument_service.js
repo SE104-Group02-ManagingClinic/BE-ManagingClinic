@@ -28,8 +28,9 @@ class ArgumentService {
     // Lấy các giá trị trong bản THAMSO
     static async getThamSo () {
         try {
-            const [record] = await db.query("select * from THAMSO");
-            return record[0];
+            const [rows] = await db.query("SELECT * FROM THAMSO");
+            if (rows.length === 0) return [];
+            return rows[0];
         }
         catch (error) {
             console.log("ArgumentService - getThamSo: ", error);
@@ -43,11 +44,9 @@ class ArgumentService {
                 "update THAMSO set SoBenhNhanToiDa = ?",
                 [so_benh_nhan_moi]
             );
-            const [record] = await db.query(
-                "select * from THAMSO"
-            );
-            
-            return record[0];
+            const [rows] = await db.query("SELECT * FROM THAMSO");
+            if (rows.length === 0) return [];
+            return rows[0];
         } 
         catch (error) {
             console.log("ArgumentService - updateSoBenhNhanToiDa: ", error);
@@ -62,11 +61,9 @@ class ArgumentService {
                 "update THAMSO set TiLeTinhDonGiaBan = ?",
                 [ti_le_moi]
             );
-            const [record] = await db.query(
-                "select * from THAMSO"
-            );
-            
-            return record[0];
+            const [rows] = await db.query("SELECT * FROM THAMSO");
+            if (rows.length === 0) return [];
+            return rows[0];
         } 
         catch (error) {
             console.log("ArgumentService - updateTiLeTinhDonGiaBan: ", error);
@@ -80,11 +77,9 @@ class ArgumentService {
                 "update THAMSO set TienKham = ?",
                 [tien_kham_moi]
             );
-            const [record] = await db.query(
-                "select * from THAMSO"
-            );
-            
-            return record[0];
+            const [rows] = await db.query("SELECT * FROM THAMSO");
+            if (rows.length === 0) return [];
+            return rows[0];
         } 
         catch (error) {
             console.log("ArgumentService - updateTienKham: ", error);
