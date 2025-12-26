@@ -5,16 +5,19 @@ exports.createPermission = async(req, res) => {
     try {
         const {
             MaNhom,
-            MaChucNang
+            DSMaChucNang
         } = req.body;
-        const existed = await PermissionService.existedPermission(MaNhom, MaChucNang);
-        if (existed) {
-            res.status(409).json({message: "Đã tồn tại phân quyền này"});
+        
+        const result = await PermissionService.createPermissions(MaNhom, DSMaChucNang);
+        if (result === null) {
+            res.status(500).json({error: 'Internal Server Error'});
+
+        } else if (!result) {
+            res.status(400).json({message: "Nhóm đã tạo phân quyền"});
         }
-        else {
-            const result = await PermissionService.createPermission(MaNhom, MaChucNang);
-            res.status(201).json({message: "Tạo phân quyền cho nhóm người dùng thành công"});
-        }
+        res.status(201).json({message: "Tạo phân quyền cho nhóm người dùng thành công"});
+
+        
     }
     catch (error) {
         console.error('Error createPermission: ', error);
@@ -25,17 +28,17 @@ exports.createPermission = async(req, res) => {
 // Xoa phan quyen
 exports.deletePermission = async (req, res) => {
     try {
+        const {MaNhom} = req.params;
         const {
-            MaNhom,
-            MaChucNang
+            DSMaChucNang
         } = req.body;
-        const existed = await PermissionService.existedPermission(MaNhom, MaChucNang);
-        if (existed) {
-            const result = await PermissionService.deletePermission(MaNhom, MaChucNang);
+        
+        const result = await PermissionService.deletePermissions(MaNhom, DSMaChucNang);
+        if (result) {
             res.status(200).json({message: "Xóa phân quyền thành công"});
         }
         else {
-            res.status(400).json({message: "Không tồn tại phân quyền này"});
+            res.status(400).json({message: "Nhóm đưa được tạo phân quyền"});
         }
     }
     catch (error) {
@@ -53,6 +56,23 @@ exports.getFunctionsOfGroupUser = async (req, res) => {
     }
     catch (error) {
         console.error('Error getFunctionsOfGroupUser: ', error);
+        res.status(500).json({error: 'Internal Server Error'});
+    }
+}
+
+// Cập nhật danh sách phân quyền
+exports.updatePermission = async (req, res) => {
+    try {
+        const {MaNhom} = req.params;
+        const {DSMaChucNang} = req.body;
+        const result = await PermissionService.updatePermissions(MaNhom, DSMaChucNang);
+        if (result) {
+            res.status(200).json({message: "Cập nhật danh sách phân quyền thành công"});
+        }
+        res.status(400).json({message: "Cập nhật không thành công"});
+    }
+    catch (error) {
+        console.error('Error updatePermission: ', error);
         res.status(500).json({error: 'Internal Server Error'});
     }
 }
