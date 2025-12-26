@@ -37,9 +37,10 @@ class RevenueReportService {
                 GROUP BY NgayTHANHTOAN
             `, [Thang, Nam]);
 
-            const TongDoanhThu = details.length === 0
-            ? 0
-            : details.reduce((sum, d) => sum + d.DOANHTHU, 0);
+            const TongDoanhThu = details.reduce(
+                (sum, d) => sum + Number(d.DOANHTHU),
+                0
+            );
 
             // 3. Sinh mã BCDTxxxx
             const [[row]] = await db.query(
@@ -206,7 +207,8 @@ class RevenueReportService {
             );
 
             const TongDoanhThu = details.reduce(
-                (sum, d) => sum + d.DOANHTHU, 0
+                (sum, d) => sum + Number(d.DOANHTHU),
+                0
             );
 
             await db.query(
