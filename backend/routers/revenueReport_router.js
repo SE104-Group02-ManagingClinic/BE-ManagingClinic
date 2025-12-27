@@ -97,7 +97,8 @@ router.get(
  * @swagger
  * /revenueReport/getReportDetail/{MaBCDT}:
  *   get:
- *     summary: Xem chi tiết báo cáo doanh thu
+ *     summary: Lấy chi tiết báo cáo doanh thu
+ *     description: API dùng để lấy thông tin chi tiết của báo cáo doanh thu theo mã báo cáo (MaBCDT).
  *     tags:
  *       - RevenueReport
  *     parameters:
@@ -106,14 +107,67 @@ router.get(
  *         required: true
  *         schema:
  *           type: string
- *         example: BCDT0001
+ *         description: Mã báo cáo doanh thu
+ *         example: "BCDT0001"
  *     responses:
  *       200:
- *         description: Lấy chi tiết báo cáo thành công
+ *         description: Thành công - trả về thông tin báo cáo và chi tiết doanh thu theo ngày
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 MaBCDT:
+ *                   type: string
+ *                   example: "BCDT0001"
+ *                 Thang:
+ *                   type: integer
+ *                   example: 12
+ *                 Nam:
+ *                   type: integer
+ *                   example: 2025
+ *                 TongDoanhThu:
+ *                   type: number
+ *                   example: 15000000
+ *                 ChiTiet:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       Ngay:
+ *                         type: string
+ *                         format: date
+ *                         example: "2025-12-01"
+ *                       SoBenhNhan:
+ *                         type: integer
+ *                         example: 25
+ *                       DoanhThu:
+ *                         type: number
+ *                         example: 500000
+ *                       TyLe:
+ *                         type: number
+ *                         format: float
+ *                         example: 0.15
  *       404:
- *         description: Không tìm thấy báo cáo
+ *         description: Không tìm thấy báo cáo doanh thu theo mã đã cung cấp
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không tìm thấy báo cáo doanh thu"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống khi lấy chi tiết báo cáo doanh thu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.get(
     '/getReportDetail/:MaBCDT',

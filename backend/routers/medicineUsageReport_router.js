@@ -8,17 +8,12 @@ const controller = require('../controllers/medicineUsageReport_controller');
  *   description: API quản lý báo cáo sử dụng thuốc
  */
 
-/* =====================================================
-   TẠO BÁO CÁO SỬ DỤNG THUỐC
-   ===================================================== */
 /**
  * @swagger
  * /medicineUsageReport/createReport:
  *   post:
  *     summary: Tạo báo cáo sử dụng thuốc theo tháng/năm
- *     description: |
- *       API này sẽ tạo mới một báo cáo sử dụng thuốc
- *       Tự động tổng hợp dữ liệu từ CT_THUOC + PHIEUKHAMBENH
+ *     description: API dùng để tạo báo cáo sử dụng thuốc theo tháng và năm. Hệ thống sẽ kiểm tra không cho phép lập báo cáo cho thời gian trong tương lai và không cho phép trùng báo cáo đã tồn tại.
  *     tags:
  *       - MedicineUsageReport
  *     requestBody:
@@ -27,9 +22,6 @@ const controller = require('../controllers/medicineUsageReport_controller');
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - Thang
- *               - Nam
  *             properties:
  *               Thang:
  *                 type: integer
@@ -41,19 +33,51 @@ const controller = require('../controllers/medicineUsageReport_controller');
  *                 example: 2025
  *     responses:
  *       201:
- *         description: Tạo báo cáo sử dụng thuốc thành công
+ *         description: Tạo báo cáo thành công
  *         content:
  *           application/json:
- *             example:
- *               MaBCSDT: BCSDT001
- *               Thang: 12
- *               Nam: 2025
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 MaBCSDT:
+ *                   type: string
+ *                   example: "BCSDT001"
+ *                 Thang:
+ *                   type: integer
+ *                   example: 12
+ *                 Nam:
+ *                   type: integer
+ *                   example: 2025
  *       400:
- *         description: Thiếu tháng hoặc năm
+ *         description: Thiếu dữ liệu hoặc thời gian không hợp lệ (tương lai)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không được lập báo cáo cho tháng/năm trong tương lai"
  *       409:
- *         description: Báo cáo tháng này đã tồn tại
+ *         description: Báo cáo tháng/năm này đã tồn tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Báo cáo tháng này đã tồn tại"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống khi tạo báo cáo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.post(
     '/createReport',
@@ -88,17 +112,12 @@ router.get(
     controller.getReports
 );
 
-/* =====================================================
-   XEM CHI TIẾT BÁO CÁO SỬ DỤNG THUỐC
-   ===================================================== */
 /**
  * @swagger
  * /medicineUsageReport/getReportDetail/{MaBCSDT}:
  *   get:
- *     summary: Xem chi tiết báo cáo sử dụng thuốc
- *     description: |
- *       Trả về chi tiết báo cáo (CT_BCSDT).
- *       Dữ liệu được tổng hợp tự động, không nhập tay.
+ *     summary: Lấy chi tiết báo cáo sử dụng thuốc
+ *     description: API dùng để lấy thông tin chi tiết của báo cáo sử dụng thuốc theo mã báo cáo (MaBCSDT).
  *     tags:
  *       - MedicineUsageReport
  *     parameters:
@@ -107,14 +126,62 @@ router.get(
  *         required: true
  *         schema:
  *           type: string
- *         example: BCSDT001
+ *         description: Mã báo cáo sử dụng thuốc
+ *         example: "BCSDT001"
  *     responses:
  *       200:
- *         description: Lấy chi tiết báo cáo thành công
+ *         description: Thành công - trả về thông tin báo cáo và chi tiết sử dụng thuốc
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 MaBCSDT:
+ *                   type: string
+ *                   example: "BCSDT001"
+ *                 Thang:
+ *                   type: integer
+ *                   example: 12
+ *                 Nam:
+ *                   type: integer
+ *                   example: 2025
+ *                 ChiTiet:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       MaThuoc:
+ *                         type: string
+ *                         example: "LT001"
+ *                       TenThuoc:
+ *                         type: string
+ *                         example: "Paracetamol"
+ *                       SoLanDung:
+ *                         type: integer
+ *                         example: 5
+ *                       SoLuongDung:
+ *                         type: integer
+ *                         example: 20
  *       404:
- *         description: Không tìm thấy báo cáo
+ *         description: Không tìm thấy báo cáo theo mã đã cung cấp
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không tìm thấy báo cáo"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống khi lấy chi tiết báo cáo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.get(
     '/getReportDetail/:MaBCSDT',
