@@ -114,15 +114,27 @@ class GroupUserService {
     // Xóa nhom nguoi dung theo MaNhom
     static async deleteGroupUser(MaNhom) {
         try {
-            const [rows] = await db.query(
-                "delete from NHOMNGUOIDUNG where MaNhom = ?",
+            // 1️. Xóa toàn bộ phân quyền của nhóm
+            await db.query(
+                `DELETE FROM PHANQUYEN 
+                WHERE MaNhom = ?`,
                 [MaNhom]
             );
+
+            // 2️. Xóa nhóm người dùng
+            const [rows] = await db.query(
+                `DELETE FROM NHOMNGUOIDUNG 
+                WHERE MaNhom = ?`,
+                [MaNhom]
+            );
+
             if (rows.affectedRows === 0) return false;
+
             return true;
         }
         catch (error) {
             console.log("GroupUserService deleteGroupUser Error: ", error);
+            return false;
         }
     }
 }

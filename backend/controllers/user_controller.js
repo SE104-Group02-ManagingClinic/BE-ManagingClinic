@@ -43,12 +43,7 @@ exports.login = async(req, res) => {
         } = req.body;
         const result = await UserService.login({TenDangNhap, MatKhau});
         if (result !== null) {
-            const group = await GroupUserService.getGroupUserById(result.MaNhom);
-            res.status(200).json({
-                TenDangNhap: result.TenDangNhap,
-                MaNhom: result.MaNhom,
-                TenNhom: group[0].TenNhom
-            });
+            res.status(200).json(result);
         }
         else {
             res.status(404).json({message: "Tài khoản đăng nhập không đúng"});

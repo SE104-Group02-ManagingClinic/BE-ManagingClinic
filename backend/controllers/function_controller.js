@@ -5,7 +5,7 @@ exports.createFunction = async (req, res) => {
     try {
         const {
             TenChucNang,
-            TenManHinhDuocLoad
+            TenThanhPhanDuocLoad
         } = req.body;
         // Kiem tra chuc nang da ton tai trong db hay chua
         const existed = await FunctionService.existedFunction(TenChucNang);
@@ -14,7 +14,7 @@ exports.createFunction = async (req, res) => {
         }
         const data = {
             TenChucNang,
-            TenManHinhDuocLoad
+            TenThanhPhanDuocLoad
         }
         const addFunction = await FunctionService.createFunction(data);
         if (addFunction === null) {
@@ -23,7 +23,7 @@ exports.createFunction = async (req, res) => {
         res.status(201).json({
             MaChucNang: addFunction.MaChucNang,
             TenChucNang: addFunction.TenChucNang,
-            TenManHinhDuocLoad: addFunction.TenManHinhDuocLoad
+            TenThanhPhanDuocLoad: addFunction.TenThanhPhanDuocLoad
         });
     }
     catch (error) {
@@ -81,14 +81,10 @@ exports.updateFunction = async (req, res) => {
     try {
         const {MaChucNang} = req.params;
         const {
-            TenChucNang,
-            TenManHinhDuocLoad
+            TenThanhPhanDuocLoad
         } = req.body;
-        const updateData = {
-            TenChucNang,
-            TenManHinhDuocLoad
-        } 
-        const result = await FunctionService.updateFunction(MaChucNang, updateData);
+        
+        const result = await FunctionService.updateFunction(MaChucNang, TenThanhPhanDuocLoad);
         if (result === null) {
             return res.status(500).json({error: 'Internal Server Error'});        
         }
@@ -113,7 +109,7 @@ exports.deleteFunction = async (req, res) => {
                 return res.status(500).json({error: 'Internal Server Error'});
             }
             if (result === false) {
-                return res.status(400).json({message: "Xóa không thành công"});
+                return res.status(400).json({message: "Xóa không thành công do chức năng được phân quyền trong group"});
             }
             return res.status(200).json({success: "Xóa thành công"});
         }

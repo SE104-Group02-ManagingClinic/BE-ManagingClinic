@@ -166,65 +166,6 @@ router.get('/getAllGroupUsers', groupUserController.getAllGroupUsers);
 
 /**
  * @swagger
- * /groupUser/updateGroupUser/{MaNhom}:
- *   put:
- *     summary: Cập nhật nhóm người dùng theo mã
- *     description: API dùng để cập nhật thông tin nhóm người dùng dựa trên mã `MaNhom`.
- *     tags:
- *       - GroupUser
- *     parameters:
- *       - in: path
- *         name: MaNhom
- *         required: true
- *         schema:
- *           type: string
- *         description: Mã nhóm người dùng cần cập nhật
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               TenNhom:
- *                 type: string
- *                 example: "Nhóm Quản trị"
- *     responses:
- *       200:
- *         description: Cập nhật thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: string
- *                   example: "Cập nhật thành công"
- *       400:
- *         description: Thông tin không thay đổi hoặc dữ liệu không hợp lệ
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Thông tin không thay đổi"
- *       500:
- *         description: Lỗi hệ thống
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Internal Server Error"
- */
-router.put('/updateGroupUser/:MaNhom', groupUserController.updateGroupUser);
-
-/**
- * @swagger
  * /groupUser/deleteGroupUser/{MaNhom}:
  *   delete:
  *     summary: Xóa nhóm người dùng theo mã
