@@ -15,9 +15,8 @@ const medicineController = require('../controllers/medicine_controller');
  * @swagger
  * /medicine/createMedicine:
  *   post:
- *     summary: Tạo mới thuốc
- *     description: |
- *       Thêm một loại thuốc mới vào hệ thống.
+ *     summary: Tạo thuốc mới
+ *     description: API dùng để thêm một loại thuốc mới vào hệ thống. Thuốc sẽ được kiểm tra trùng tên và kiểm tra khóa ngoại trước khi tạo.
  *     tags:
  *       - Medicine
  *     requestBody:
@@ -26,35 +25,83 @@ const medicineController = require('../controllers/medicine_controller');
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - TenThuoc
- *               - MaDVT
- *               - MaCachDung
  *             properties:
  *               TenThuoc:
  *                 type: string
- *                 example: Paracetamol
+ *                 description: Tên thuốc
+ *                 example: "Paracetamol"
  *               CongDung:
  *                 type: string
- *                 example: Giảm đau, hạ sốt
+ *                 description: Công dụng của thuốc
+ *                 example: "Giảm đau, hạ sốt"
  *               MaCachDung:
  *                 type: string
- *                 example: CD001
+ *                 description: Mã cách dùng (khóa ngoại)
+ *                 example: "CD001"
  *               MaDVT:
  *                 type: string
- *                 example: DVT01
+ *                 description: Mã đơn vị tính (khóa ngoại)
+ *                 example: "DVT01"
  *               TacDungPhu:
  *                 type: string
- *                 example: Buồn nôn
+ *                 description: Tác dụng phụ của thuốc
+ *                 example: "Buồn nôn, chóng mặt"
  *     responses:
  *       201:
- *         description: Tạo thuốc thành công
- *       400:
- *         description: Dữ liệu không hợp lệ hoặc khóa ngoại không tồn tại
+ *         description: Tạo thuốc mới thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 MaThuoc:
+ *                   type: string
+ *                   example: "LT001"
+ *                 TenThuoc:
+ *                   type: string
+ *                   example: "Paracetamol"
+ *                 CongDung:
+ *                   type: string
+ *                   example: "Giảm đau, hạ sốt"
+ *                 MaCachDung:
+ *                   type: string
+ *                   example: "CD001"
+ *                 MaDVT:
+ *                   type: string
+ *                   example: "DVT01"
+ *                 TacDungPhu:
+ *                   type: string
+ *                   example: "Buồn nôn, chóng mặt"
  *       409:
  *         description: Tên thuốc đã tồn tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Tên thuốc đã tồn tại"
+ *       400:
+ *         description: Khóa ngoại không hợp lệ (MaDVT hoặc MaCachDung không tồn tại)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Mã đơn vị tính hoặc mã cách dùng không tồn tại"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống hoặc tạo thuốc thất bại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.post('/createMedicine', medicineController.createMedicine);
 
@@ -63,13 +110,13 @@ router.post('/createMedicine', medicineController.createMedicine);
  * @swagger
  * /medicine/getMedicine:
  *   get:
- *     summary: Lấy danh sách tất cả thuốc
- *     description: Trả về danh sách các thuốc trong hệ thống
+ *     summary: Lấy danh sách thuốc
+ *     description: API trả về danh sách tất cả các loại thuốc, bao gồm thông tin chi tiết và các lô thuốc liên quan.
  *     tags:
  *       - Medicine
  *     responses:
  *       200:
- *         description: Lấy danh sách thuốc thành công
+ *         description: Thành công - trả về danh sách thuốc
  *         content:
  *           application/json:
  *             schema:
@@ -79,24 +126,50 @@ router.post('/createMedicine', medicineController.createMedicine);
  *                 properties:
  *                   MaThuoc:
  *                     type: string
- *                     example: LT001
+ *                     example: "LT001"
  *                   TenThuoc:
  *                     type: string
- *                     example: Paracetamol
+ *                     example: "Paracetamol"
+ *                   CongDung:
+ *                     type: string
+ *                     example: "Giảm đau, hạ sốt"
  *                   TenDVT:
  *                     type: string
- *                     example: Viên
+ *                     example: "Viên"
  *                   TenCachDung:
  *                     type: string
- *                     example: Uống sau ăn
- *                   SoLuongTon:
- *                     type: integer
- *                     example: 0
- *                   GiaBan:
- *                     type: integer
- *                     example: 0
+ *                     example: "Uống sau ăn"
+ *                   TacDungPhu:
+ *                     type: string
+ *                     example: "Buồn nôn, chóng mặt"
+ *                   LoThuoc:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         MaLo:
+ *                           type: string
+ *                           example: "LO001"
+ *                         SoLuongTon:
+ *                           type: integer
+ *                           example: 100
+ *                         GiaBan:
+ *                           type: integer
+ *                           example: 5000
+ *                         HanSuDung:
+ *                           type: string
+ *                           format: date
+ *                           example: "2026-12-31"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống khi lấy danh sách thuốc
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.get('/getMedicine', medicineController.getMedicine);
 
@@ -105,25 +178,28 @@ router.get('/getMedicine', medicineController.getMedicine);
  * @swagger
  * /medicine/searchMedicine:
  *   get:
- *     summary: Tìm kiếm thuốc theo tiêu chuẩn
- *     description: Tìm kiếm thuốc theo Tên thuốc và Đơn vị tính
+ *     summary: Tìm kiếm thuốc
+ *     description: API dùng để tìm kiếm thuốc theo tên thuốc hoặc công dụng. Kết quả trả về bao gồm thông tin chi tiết thuốc và các lô thuốc liên quan.
  *     tags:
  *       - Medicine
  *     parameters:
  *       - in: query
  *         name: TenThuoc
+ *         required: false
  *         schema:
  *           type: string
- *         description: Tìm theo tên thuốc (partial match)
+ *         description: Tên thuốc cần tìm kiếm
+ *         example: "Paracetamol"
  *       - in: query
- *         name: TenDVT
+ *         name: CongDung
+ *         required: false
  *         schema:
  *           type: string
- *         description: Tên đơn vị tính (partial match)
- *       
+ *         description: Công dụng của thuốc cần tìm kiếm
+ *         example: "Giảm đau"
  *     responses:
  *       200:
- *         description: Kết quả tìm kiếm
+ *         description: Thành công - trả về danh sách thuốc phù hợp
  *         content:
  *           application/json:
  *             schema:
@@ -133,23 +209,50 @@ router.get('/getMedicine', medicineController.getMedicine);
  *                 properties:
  *                   MaThuoc:
  *                     type: string
+ *                     example: "LT001"
  *                   TenThuoc:
  *                     type: string
+ *                     example: "Paracetamol"
  *                   CongDung:
  *                     type: string
- *                   TenCachDung:
- *                     type: string
+ *                     example: "Giảm đau, hạ sốt"
  *                   TenDVT:
  *                     type: string
+ *                     example: "Viên"
+ *                   TenCachDung:
+ *                     type: string
+ *                     example: "Uống sau ăn"
  *                   TacDungPhu:
  *                     type: string
- *                   SoLuongTon:
- *                     type: integer
- *                   GiaBan:
- *                     type: number
- *                   
+ *                     example: "Buồn nôn, chóng mặt"
+ *                   LoThuoc:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         MaLo:
+ *                           type: string
+ *                           example: "LO001"
+ *                         SoLuongTon:
+ *                           type: integer
+ *                           example: 100
+ *                         GiaBan:
+ *                           type: integer
+ *                           example: 5000
+ *                         HanSuDung:
+ *                           type: string
+ *                           format: date
+ *                           example: "2026-12-31"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống khi tìm kiếm thuốc
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.get('/searchMedicine', medicineController.searchMedicine);
 
@@ -159,7 +262,7 @@ router.get('/searchMedicine', medicineController.searchMedicine);
  * /medicine/updateMedicine/{MaThuoc}:
  *   put:
  *     summary: Cập nhật thông tin thuốc
- *     description: Cập nhật các thuộc tính của thuốc theo mã thuốc
+ *     description: API dùng để cập nhật thông tin thuốc theo mã thuốc (MaThuoc). Bao gồm công dụng, cách dùng, đơn vị tính và tác dụng phụ.
  *     tags:
  *       - Medicine
  *     parameters:
@@ -168,7 +271,8 @@ router.get('/searchMedicine', medicineController.searchMedicine);
  *         required: true
  *         schema:
  *           type: string
- *         example: LT001
+ *         description: Mã thuốc cần cập nhật
+ *         example: "LT001"
  *     requestBody:
  *       required: true
  *       content:
@@ -176,28 +280,63 @@ router.get('/searchMedicine', medicineController.searchMedicine);
  *           schema:
  *             type: object
  *             properties:
- *               TenThuoc:
- *                 type: string
- *                 example: Paracetamol 500mg
  *               CongDung:
  *                 type: string
+ *                 description: Công dụng của thuốc
+ *                 example: "Giảm đau, hạ sốt"
  *               MaCachDung:
  *                 type: string
- *                 example: CD001
+ *                 description: Mã cách dùng (khóa ngoại)
+ *                 example: "CD001"
  *               MaDVT:
  *                 type: string
- *                 example: DVT01
+ *                 description: Mã đơn vị tính (khóa ngoại)
+ *                 example: "DVT001"
  *               TacDungPhu:
  *                 type: string
+ *                 description: Tác dụng phụ của thuốc
+ *                 example: "Buồn nôn, chóng mặt"
  *     responses:
  *       200:
  *         description: Cập nhật thuốc thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Cập nhật thành công"
  *       400:
- *         description: Dữ liệu không hợp lệ hoặc khóa ngoại không tồn tại
+ *         description: Khóa ngoại không hợp lệ hoặc dữ liệu không hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Mã đơn vị tính hoặc mã cách dùng không tồn tại"
  *       404:
  *         description: Không tìm thấy thuốc để cập nhật
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Không tìm thấy thuốc để cập nhật"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống hoặc cập nhật thất bại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.put('/updateMedicine/:MaThuoc', medicineController.updateMedicine);
 
@@ -206,8 +345,8 @@ router.put('/updateMedicine/:MaThuoc', medicineController.updateMedicine);
  * @swagger
  * /medicine/deleteMedicine/{MaThuoc}:
  *   delete:
- *     summary: Xóa một loại thuốc
- *     description: Xóa thuốc khỏi hệ thống nếu chưa được sử dụng
+ *     summary: Xóa thuốc theo mã thuốc
+ *     description: API dùng để xóa thuốc khỏi hệ thống. Trước khi xóa sẽ kiểm tra xem thuốc đã từng được kê đơn hoặc đã tồn tại lô thuốc hay chưa.
  *     tags:
  *       - Medicine
  *     parameters:
@@ -216,16 +355,49 @@ router.put('/updateMedicine/:MaThuoc', medicineController.updateMedicine);
  *         required: true
  *         schema:
  *           type: string
- *         example: LT001
+ *         description: Mã thuốc cần xóa
+ *         example: "LT001"
  *     responses:
  *       200:
  *         description: Xóa thuốc thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Xóa thành công"
  *       400:
- *         description: Không thể xóa thuốc đã được sử dụng
+ *         description: Không thể xóa thuốc (do đã được kê đơn, đã tồn tại lô thuốc hoặc thiếu mã thuốc)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không thể xóa thuốc đã được kê đơn"
  *       404:
  *         description: Không tìm thấy thuốc để xóa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Không tìm thấy thuốc để xóa"
  *       500:
- *         description: Lỗi máy chủ nội bộ
+ *         description: Lỗi hệ thống khi xóa thuốc
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
  */
 router.delete('/deleteMedicine/:MaThuoc', medicineController.deleteMedicine);
 
