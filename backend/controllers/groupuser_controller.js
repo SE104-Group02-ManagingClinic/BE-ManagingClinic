@@ -63,30 +63,6 @@ exports.getAllGroupUsers = async (req, res) => {
     }
 }
 
-// Cap nhap nhom nguoi dung theo MaNhom
-exports.updateGroupUser = async (req, res) => {
-    try {
-        const {MaNhom} = req.params;
-        const {
-            TenNhom
-        } = req.body;
-        const updateData = {
-            TenNhom
-        } 
-        const result = await GroupUserService.updateGroupUser(MaNhom, updateData)
-        if (result === null) {
-            return res.status(500).json({error: 'Internal Server Error'});        
-        }
-        if (result === false) {
-            return res.status(400).json({message: "Thông tin không thay đổi"});
-        }
-        return res.status(200).json({success: "Cập nhật thành công"});
-    }
-    catch (error) {
-        console.error('Error updateGroupUser: ', error);
-        res.status(500).json({error: 'Internal Server Error'});        
-    }
-}
 
 // Xoa nhom nguoi dung theo MaNhom
 exports.deleteGroupUser = async (req, res) => {

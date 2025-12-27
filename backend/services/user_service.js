@@ -30,24 +30,46 @@ class UserService {
         }
     }
 
-    // Dang nhap
+    // Đăng nhập
     static async login(data) {
         try {
-            const {
-                TenDangNhap,
-                MatKhau
-            } = data;
-            const [rows] = await db.query(
-                "select * from NGUOIDUNG where TenDangNhap like ? and MatKhau like ?",
+            const { TenDangNhap, MatKhau } = data;
+
+            // 1️. Lấy thông tin user + tên nhóm
+            const [users] = await db.query(
+                `SELECT nd.TenDangNhap, nd.MatKhau, nd.MaNhom, nn.TenNhom
+                FROM NGUOIDUNG nd
+                JOIN NHOMNGUOIDUNG nn ON nd.MaNhom = nn.MaNhom
+                WHERE nd.TenDangNhap = ? AND nd.MatKhau = ?`,
                 [TenDangNhap, MatKhau]
             );
-            if (rows.length > 0) return rows[0];
-            return null;
+
+            if (users.length === 0) return null;
+
+            const user = users[0];
+
+            // 2️. Lấy danh sách chức năng của nhóm
+            const [functions] = await db.query(
+                `SELECT cn.MaChucNang, cn.TenChucNang, cn.TenThanhPhanDuocLoad
+                FROM PHANQUYEN pq
+                JOIN CHUCNANG cn ON pq.MaChucNang = cn.MaChucNang
+                WHERE pq.MaNhom = ?`,
+                [user.MaNhom]
+            );
+
+            // 3️. Gộp kết quả
+            return {
+                ...user,
+                DanhSachChucNang: functions
+            };
         }
         catch (error) {
             console.log("User Service login error: ", error);
+            return null;
         }
     }
+
+
 
     // Cap nhat mat khau
     static async updatePassword(data) {

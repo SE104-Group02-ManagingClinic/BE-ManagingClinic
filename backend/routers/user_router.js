@@ -71,7 +71,7 @@ router.post('/createAccount', userController.createAccount);
  * /user/login:
  *   post:
  *     summary: Đăng nhập hệ thống
- *     description: API dùng để đăng nhập bằng tên đăng nhập và mật khẩu. Trả về thông tin nhóm người dùng nếu thành công.
+ *     description: API dùng để đăng nhập vào hệ thống. Trả về thông tin người dùng, nhóm và danh sách chức năng được phân quyền.
  *     tags:
  *       - User
  *     requestBody:
@@ -83,13 +83,15 @@ router.post('/createAccount', userController.createAccount);
  *             properties:
  *               TenDangNhap:
  *                 type: string
- *                 example: "tien.nguyen"
+ *                 description: Tên đăng nhập của người dùng
+ *                 example: "admin"
  *               MatKhau:
  *                 type: string
+ *                 description: Mật khẩu của người dùng
  *                 example: "123456"
  *     responses:
  *       200:
- *         description: Đăng nhập thành công - trả về thông tin tài khoản và nhóm
+ *         description: Đăng nhập thành công - trả về thông tin người dùng và danh sách chức năng
  *         content:
  *           application/json:
  *             schema:
@@ -97,13 +99,30 @@ router.post('/createAccount', userController.createAccount);
  *               properties:
  *                 TenDangNhap:
  *                   type: string
- *                   example: "tien.nguyen"
+ *                   example: "admin"
+ *                 MatKhau:
+ *                   type: string
+ *                   example: "123456"
  *                 MaNhom:
  *                   type: string
  *                   example: "GR001"
  *                 TenNhom:
  *                   type: string
- *                   example: "Nhóm Quản trị"
+ *                   example: "Quản trị viên"
+ *                 DanhSachChucNang:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       MaChucNang:
+ *                         type: string
+ *                         example: "CN001"
+ *                       TenChucNang:
+ *                         type: string
+ *                         example: "Quản lý thuốc"
+ *                       TenThanhPhanDuocLoad:
+ *                         type: string
+ *                         example: "MedicineComponent"
  *       404:
  *         description: Tài khoản đăng nhập không đúng
  *         content:
@@ -115,7 +134,7 @@ router.post('/createAccount', userController.createAccount);
  *                   type: string
  *                   example: "Tài khoản đăng nhập không đúng"
  *       500:
- *         description: Lỗi hệ thống
+ *         description: Lỗi hệ thống khi đăng nhập
  *         content:
  *           application/json:
  *             schema:
