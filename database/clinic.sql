@@ -83,7 +83,7 @@ CREATE TABLE LOAITHUOC (
 
 -- Bang Số lô
 CREATE TABLE LOTHUOC (
-    MaLo VARCHAR(6) PRIMARY KEY,
+    MaLo VARCHAR(5) PRIMARY KEY,
     MaThuoc VARCHAR(5),
     GiaBan INT,
     SoLuongTon INT,
@@ -95,7 +95,7 @@ CREATE TABLE LOTHUOC (
 -- Bảng Phiếu Nhập Thuốc
 CREATE TABLE PHIEUNHAPTHUOC (
     MaPNT VARCHAR(6) PRIMARY KEY not null,
-    MaLo VARCHAR(6),
+    MaLo VARCHAR(5),
     GiaNhap INT,
     NgayNhap DATE,
     SoLuongNhap INT,
