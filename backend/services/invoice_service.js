@@ -16,18 +16,14 @@ class InvoiceService {
     // -- Kiểm tra xem có hóa đơn nào đã có phiếu khám bệnh
     static async existedInvoice(MaPKB) {
         try {
-            // Kiểm tra xem có hóa đơn nào đã có MaPKB (phiếu khám bệnh) chưa
             const [rows] = await db.query(
-                `SELECT MaHD, MaPKB
-                FROM HOADONTHANHTOAN
-                WHERE MaPKB IS NOT NULL
-                ORDER BY MaHD DESC
-                LIMIT 1`
+                `SELECT MaHD FROM HOADONTHANHTOAN 
+                 WHERE MaPKB = ? LIMIT 1`,
+                [MaPKB]
             );
 
-            // Nếu rows.length > 0 thì đã tồn tại hóa đơn gắn với phiếu khám bệnh
             if (rows.length > 0) {
-                rows[0].MaHD;
+                return rows[0].MaHD; // Trả về MaHD nếu tồn tại
             } 
             return "";
         }
@@ -36,6 +32,7 @@ class InvoiceService {
             return null;
         }
     }
+
     // Them moi hoa don
     static async createInvoice(data) {
         try {
@@ -46,11 +43,9 @@ class InvoiceService {
                 TienThuoc
             } = data;
 
+            // 1. Lấy ID cuối để sinh mã
             const [rows] = await db.query(
-                `select MaHD 
-                from HOADONTHANHTOAN 
-                order by MaHD desc 
-                limit 1`
+                "select MaHD from HOADONTHANHTOAN order by MaHD desc limit 1"
             );
 
             let lastId = "";
@@ -60,6 +55,7 @@ class InvoiceService {
 
             const nextId = this.createId(lastId);
             const TongTien = TienKham + TienThuoc;
+            
             const record = {
                 MaHD: nextId,
                 MaPKB,
@@ -69,31 +65,44 @@ class InvoiceService {
                 TongTien
             }
 
+            // 2. Insert Hóa đơn
             const [addRecord] = await db.query(
-                `insert into HOADONTHANHTOAN set ?`,
+                "insert into HOADONTHANHTOAN set ?",
                 [record]
             );
 
-            // Chỉ cập nhật tồn kho nếu hóa đơn tạo thành công và có tiền thuốc > 0
-            if (addRecord.affectedRows > 0 && TienThuoc > 0) {
-                // Lấy danh sách thuốc trong phiếu khám bệnh
-                const [thuocList] = await db.query(
-                    `SELECT MaThuoc, SoLuong 
-                    FROM CT_THUOC 
-                    WHERE MaPKB = ?`,
-                    [MaPKB]
-                );
+            let note = "";
 
-                // Cập nhật tồn kho cho từng thuốc
-                for (const thuoc of thuocList) {
-                    await db.query(
-                        `UPDATE LOAITHUOC 
-                        SET SoLuongTon = SoLuongTon - ? 
-                        WHERE MaThuoc = ?`,
-                        [thuoc.SoLuong, thuoc.MaThuoc]
+            // 3. Xử lý Logic Kho (Chỉ thực hiện khi insert thành công)
+            if (addRecord.affectedRows > 0) {
+                
+                // TRƯỜNG HỢP A: KHÁCH KHÔNG MUA THUỐC (TienThuoc == 0)
+                // Logic: Hoàn trả lại số lượng thuốc vào kho
+                if (TienThuoc === 0) {
+                    // Lấy danh sách thuốc đã kê trong PKB để biết lô nào cần trả
+                    const [thuocList] = await db.query(
+                        "SELECT MaThuoc, MaLo, SoLuong FROM CT_THUOC WHERE MaPKB = ?",
+                        [MaPKB]
                     );
+
+                    if (thuocList.length > 0) {
+                        for (const item of thuocList) {
+                            // Cộng lại số lượng vào LOTHUOC (SoLuongTon + SoLuong)
+                            await db.query(
+                                `UPDATE LOTHUOC 
+                                 SET SoLuongTon = SoLuongTon + ? 
+                                 WHERE MaLo = ?`,
+                                [item.SoLuong, item.MaLo]
+                            );
+                        }
+                        note = "Đã hoàn trả thuốc vào kho do khách không mua.";
+                    }
                 }
-                return record;
+                
+                // TRƯỜNG HỢP B: KHÁCH MUA THUỐC (TienThuoc > 0)
+                // Logic: Không làm gì cả, vì tồn kho đã trừ lúc Tạo Phiếu Khám Bệnh.
+                
+                return { ...record, Note: note };
             }
 
             return null;
@@ -103,6 +112,7 @@ class InvoiceService {
             return null;
         }
     }
+    
     // Lay tat ca thong tin hoa don thanh toan theo ngay
     static async getInvoicesByDate(date) {
         try {    

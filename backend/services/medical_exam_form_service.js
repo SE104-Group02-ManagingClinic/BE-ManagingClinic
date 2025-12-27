@@ -16,90 +16,101 @@ class MedicalExamForm {
     static async createMedicalExamForm(data) {
         try {
             const {
-            MaBN,
-            NgayKham,
-            TrieuChung,
-            CT_Thuoc
+                MaBN,
+                NgayKham,
+                TrieuChung,
+                CT_Benh, 
+                CT_Thuoc, 
+                TongTienThuoc
             } = data;
 
-            await db.beginTransaction();
-
-            // 1. Sinh MaPKB
-            const [[row]] = await db.query(
-            "SELECT MaPKB FROM PHIEUKHAMBENH ORDER BY MaPKB DESC LIMIT 1"
+            const [rows] = await db.query(
+                "SELECT MaPKB FROM PHIEUKHAMBENH ORDER BY MaPKB DESC LIMIT 1"
             );
 
-            let MaPKB = "PKB001";
-            if (row) {
-            const num = parseInt(row.MaPKB.slice(3)) + 1;
-            MaPKB = "PKB" + num.toString().padStart(3, "0");
+            let lastId = "";
+            if (rows.length > 0) {
+                lastId = rows[0].MaPKB;
             }
+            const nextId = this.createId(lastId);
 
-            // 2. Insert PHIEUKHAMBENH
-            await db.query(
-            `
-            INSERT INTO PHIEUKHAMBENH
-            (MaPKB, MaBN, NgayKham, TrieuChung)
-            VALUES (?, ?, ?, ?)
-            `,
-            [MaPKB, MaBN, NgayKham, TrieuChung]
+            // --- B. Insert Bảng PHIEUKHAMBENH ---
+            const recordPKB = {
+                MaPKB: nextId,
+                MaBN,
+                NgayKham,
+                TrieuChung,
+                TongTienThuoc
+            };
+
+            const [resultPKB] = await db.query(
+                "INSERT INTO PHIEUKHAMBENH SET ?",
+                [recordPKB]
             );
 
-            // 3. Insert CT_THUOC (BẮT BUỘC MaLo)
-            if (Array.isArray(CT_Thuoc)) {
-            for (const t of CT_Thuoc) {
-                if (!t.MaLo) {
-                await db.rollback();
-                return null;
+            // Nếu tạo header thành công
+            if (resultPKB.affectedRows > 0) {
+                
+                // --- C. Insert CT_BENH ---
+                if (CT_Benh && CT_Benh.length > 0) {
+                    for (const maBenh of CT_Benh) {
+                        const recordBenh = {
+                            MaPKB: nextId,
+                            MaBenh: maBenh
+                        };
+                        await db.query("INSERT INTO CT_BENH SET ?", [recordBenh]);
+                    }
                 }
 
-                const ThanhTien = t.SoLuong * t.DonGiaBan;
+                // --- D. Insert CT_THUOC và TRỪ TỒN KHO ---
+                if (CT_Thuoc && CT_Thuoc.length > 0) {
+                    for (const t of CT_Thuoc) {
+                        // Tính thành tiền
+                        const thanhTien = t.SoLuong * t.DonGiaBan;
+                        
+                        const recordThuoc = {
+                            MaThuoc: t.MaThuoc,
+                            MaLo: t.MaLo, // Bắt buộc phải có từ bước confirm
+                            MaPKB: nextId,
+                            SoLuong: t.SoLuong,
+                            DonGiaBan: t.DonGiaBan,
+                            ThanhTien: thanhTien
+                        };
 
-                await db.query(
-                `
-                INSERT INTO CT_THUOC
-                (MaThuoc, MaLo, MaPKB, SoLuong, DonGiaBan, ThanhTien)
-                VALUES (?, ?, ?, ?, ?, ?)
-                `,
-                [
-                    t.MaThuoc,
-                    t.MaLo,
-                    MaPKB,
-                    t.SoLuong,
-                    t.DonGiaBan,
-                    ThanhTien
-                ]
-                );
+                        // D1. Insert vào CT_THUOC
+                        await db.query("INSERT INTO CT_THUOC SET ?", [recordThuoc]);
+
+                        // D2. Cập nhật trừ tồn kho trong LOTHUOC (Logic trừ kho nằm ở đây)
+                        await db.query(
+                            "UPDATE LOTHUOC SET SoLuongTon = SoLuongTon - ? WHERE MaLo = ?",
+                            [t.SoLuong, t.MaLo]
+                        );
+                    }
+                }
+
+                return nextId; // Trả về MaPKB vừa tạo
             }
-            }
-
-            await db.commit();
-
-            return {
-            MaPKB,
-            MaBN,
-            NgayKham
-            };
-        } catch (error) {
-            await db.rollback();
-            console.error("createMedicalExamForm service error:", error);
+            return null;
+        } 
+        catch (error) {
+            console.log("MedicalExamForm createMedicalExamForm error: ", error);
             return null;
         }
     }
 
-    // Xác nhận thuốc & trừ tồn kho theo lô
+    // 2. Xác nhận thuốc (CHỈ KIỂM TRA - KHÔNG TRỪ KHO)
     static async confirmMedicalExamForm(danhSachThuoc) {
         try {
             const result = [];
-            await db.beginTransaction();
 
             for (const item of danhSachThuoc) {
                 const { MaThuoc, SoLuong } = item;
 
                 // Tìm lô còn hạn, đủ số lượng, ưu tiên hạn gần nhất
-                const [[lo]] = await db.query(
+                // CHÚ Ý: Logic này chỉ để SELECT xem có lô nào đáp ứng không
+                const [rows] = await db.query(
                     `
-                    SELECT MaLo, SoLuongTon
+                    SELECT MaLo, SoLuongTon, HanSuDung, GiaBan
                     FROM LOTHUOC
                     WHERE MaThuoc = ?
                     AND HanSuDung >= CURDATE()
@@ -110,37 +121,29 @@ class MedicalExamForm {
                     [MaThuoc, SoLuong]
                 );
 
-                // Không đủ thuốc
-                if (!lo) {
+                if (rows.length === 0) {
+                    // Không đủ thuốc hoặc hết hạn
                     result.push({
                         MaThuoc,
-                        MaLo: -1
+                        MaLo: null, // Frontend nhận null sẽ báo lỗi thuốc này hết hàng
+                        Status: "Hết hàng hoặc không đủ số lượng"
                     });
-                    continue;
+                } else {
+                    // Tìm thấy lô phù hợp
+                    const lo = rows[0];
+                    result.push({
+                        MaThuoc,
+                        MaLo: lo.MaLo,       // Trả về mã lô để FE điền vào form tạo
+                        GiaBan: lo.GiaBan,   // Trả về giá bán hiện tại của lô đó
+                        SoLuongTon: lo.SoLuongTon,
+                        HanSuDung: lo.HanSuDung
+                    });
                 }
-
-                // Trừ tồn kho
-                await db.query(
-                    `
-                    UPDATE LOTHUOC
-                    SET SoLuongTon = SoLuongTon - ?
-                    WHERE MaLo = ?
-                    `,
-                    [SoLuong, lo.MaLo]
-                );
-
-                result.push({
-                    MaThuoc,
-                    MaLo: lo.MaLo
-                });
             }
-
-            await db.commit();
             return result;
         } catch (error) {
-            await db.rollback();
-            console.error("confirmMedicalExamForm service error:", error);
-            throw error;
+            console.log("MedicalExamForm confirmMedicalExamForm error: ", error);
+            return null;
         }
     }
 

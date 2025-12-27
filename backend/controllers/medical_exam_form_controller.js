@@ -1,37 +1,49 @@
 const MedicalExamFormService = require('../services/medical_exam_form_service');
 const PatientService = require('../services/patient_service');
 
-// Tao PKB
+// 1. Tạo phiếu khám bệnh (Create)
 exports.createMedicalExamForm = async (req, res) => {
   try {
     const {
       MaBN,
       NgayKham,
       TrieuChung,
-      CT_Thuoc
+      CT_Benh,
+      CT_Thuoc,
+      TongTienThuoc
     } = req.body;
 
     if (!MaBN || !NgayKham) {
       return res.status(400).json({
-        message: "Thiếu dữ liệu bắt buộc"
+        message: "Thiếu dữ liệu bắt buộc (MaBN, NgayKham)"
       });
     }
 
-    const result =
-      await MedicalExamFormService.createMedicalExamForm({
-        MaBN,
-        NgayKham,
-        TrieuChung,
-        CT_Thuoc
-      });
+    // Kiểm tra bệnh nhân tồn tại (Optional - nếu muốn kỹ)
+    // const existed = await PatientService.existedPatientById(MaBN);
+    // if (!existed) return res.status(409).json({message: "Bệnh nhân không tồn tại"});
 
-    if (!result) {
+    const result = await MedicalExamFormService.createMedicalExamForm({
+      MaBN,
+      NgayKham,
+      TrieuChung,
+      CT_Benh,
+      CT_Thuoc,
+      TongTienThuoc
+    });
+
+    if (result === null) {
       return res.status(500).json({
         error: "Internal Server Error"
       });
     }
 
-    return res.status(201).json(result);
+    // Trả về MaPKB mới tạo
+    return res.status(201).json({
+        message: "Tạo phiếu khám thành công",
+        MaPKB: result
+    });
+
   } catch (error) {
     console.error("createMedicalExamForm error:", error);
     return res.status(500).json({
@@ -40,10 +52,10 @@ exports.createMedicalExamForm = async (req, res) => {
   }
 };
 
-// Xác nhận kê thuốc – trừ tồn kho
+// 2. Xác nhận thuốc (Confirm)
 exports.confirmMedicalExamForm = async (req, res) => {
   try {
-    const danhSachThuoc = req.body;
+    const danhSachThuoc = req.body; // Array [{MaThuoc, SoLuong}]
 
     if (!Array.isArray(danhSachThuoc) || danhSachThuoc.length === 0) {
       return res.status(400).json({
@@ -51,19 +63,21 @@ exports.confirmMedicalExamForm = async (req, res) => {
       });
     }
 
-    const result =
-      await MedicalExamFormService.confirmMedicalExamForm(danhSachThuoc);
+    const result = await MedicalExamFormService.confirmMedicalExamForm(danhSachThuoc);
+    
+    if (result === null) {
+        return res.status(500).json({ error: "Lỗi hệ thống khi kiểm tra thuốc" });
+    }
 
     return res.status(200).json(result);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("confirmMedicalExamForm error:", error);
     return res.status(500).json({
       error: "Internal Server Error"
     });
   }
 };
-
-
 
 // Cập nhật Phiếu kham benh
 exports.updateMedicalExamForm = async(req, res) => {

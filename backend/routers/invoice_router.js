@@ -12,8 +12,20 @@ const invoiceController = require('../controllers/invoice_controller');
  * @swagger
  * /invoice/createInvoice:
  *   post:
- *     summary: Tạo hóa đơn thanh toán mới
- *     description: API dùng để tạo hóa đơn thanh toán cho phiếu khám bệnh. Mỗi phiếu khám bệnh chỉ có một hóa đơn thanh toán duy nhất.
+ *     summary: Tạo hóa đơn thanh toán
+ *     description: |
+ *       Tạo hóa đơn thanh toán dựa trên Phiếu Khám Bệnh (PKB).
+ *
+ *       🔹 Quy tắc nghiệp vụ:
+ *       - Nếu **TienThuoc > 0**:
+ *         - Bệnh nhân có mua thuốc
+ *         - Tồn kho **KHÔNG thay đổi** (đã trừ ở bước tạo phiếu khám)
+ *
+ *       - Nếu **TienThuoc = 0**:
+ *         - Bệnh nhân không mua thuốc
+ *         - Hệ thống **hoàn lại tồn kho** cho các thuốc đã kê trong PKB
+ *
+ *       ❗ Mỗi Phiếu Khám Bệnh chỉ được tạo **01 hóa đơn duy nhất**.
  *     tags:
  *       - Invoice
  *     requestBody:
@@ -22,62 +34,54 @@ const invoiceController = require('../controllers/invoice_controller');
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - MaPKB
+ *               - NgayThanhToan
+ *               - TienKham
+ *               - TienThuoc
  *             properties:
  *               MaPKB:
  *                 type: string
+ *                 description: Mã phiếu khám bệnh
  *                 example: "PKB00001"
  *               NgayThanhToan:
  *                 type: string
  *                 format: date
- *                 example: "2025-12-15"
+ *                 description: Ngày lập hóa đơn
+ *                 example: "2025-12-20"
  *               TienKham:
  *                 type: integer
- *                 example: 100000
+ *                 description: Tiền khám bệnh
+ *                 example: 50000
  *               TienThuoc:
  *                 type: integer
- *                 example: 200000
+ *                 description: |
+ *                   Tiền thuốc phải thanh toán.
+ *                   - = 0: Không mua thuốc
+ *                   - > 0: Có mua thuốc
+ *                 example: 120000
  *     responses:
  *       201:
- *         description: Tạo hóa đơn thanh toán thành công
+ *         description: Tạo hóa đơn thành công
  *         content:
  *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Tạo thành công hóa đơn thanh toán"
- *                 MaHD:
- *                   type: string
- *                   example: "HD00001"
- *                 TongTien:
- *                   type: integer
- *                   example: 300000
+ *             example:
+ *               message: "Tạo hóa đơn thành công"
+ *               MaHD: "HD00012"
+ *               MaPKB: "PKB00001"
+ *               TongTien: 170000
+ *       400:
+ *         description: Dữ liệu không hợp lệ (thiếu trường bắt buộc, sai định dạng)
  *       409:
- *         description: Đã tồn tại hóa đơn cho phiếu khám bệnh này
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Đã tồn tại hóa đơn thanh toán cho phiếu khám bệnh"
- *                 MaHD:
- *                   type: string
- *                   example: "HD00001"
+ *         description: Phiếu khám bệnh đã tồn tại hóa đơn
  *       500:
- *         description: Lỗi hệ thống hoặc tạo hóa đơn thất bại
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Internal Server Error"
+ *         description: Lỗi máy chủ nội bộ
  */
-router.post('/createInvoice', invoiceController.createInvoice);
+router.post(
+  '/createInvoice',
+  invoiceController.createInvoice
+);
+
 
 /**
  * @swagger
