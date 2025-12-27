@@ -8,12 +8,27 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *   description: Các API liên quan đến Phiếu khám bệnh.
  */
 
+/* =====================================================
+   1. TẠO PHIẾU KHÁM BỆNH (CREATE)
+   ===================================================== */
 /**
  * @swagger
  * /medicalExamForm/createMedicalExamForm:
  *   post:
- *     summary: Tạo phiếu khám bệnh (PKB)
- *     description: API dùng để tạo mới phiếu khám bệnh cho bệnh nhân, bao gồm triệu chứng, danh sách bệnh và thuốc. Nếu bệnh nhân không tồn tại, trả về lỗi 409.
+ *     summary: Tạo phiếu khám bệnh (PKB) và trừ tồn kho
+ *     description: |
+ *       API tạo phiếu khám bệnh.
+ *       
+ *       🔹 Chức năng:
+ *       - Lưu thông tin phiếu khám bệnh
+ *       - Lưu chi tiết bệnh (CT_BENH)
+ *       - Lưu chi tiết thuốc (CT_THUOC)
+ *       - Trừ tồn kho thuốc theo **MaLo**
+ *
+ *       ❗ Lưu ý quan trọng:
+ *       - **MaLo là bắt buộc**
+ *       - Client phải gọi API `/confirmMedicalExamForm` trước
+ *         để lấy MaLo hợp lệ
  *     tags:
  *       - MedicalExamForm
  *     requestBody:
@@ -22,6 +37,9 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - MaBN
+ *               - NgayKham
  *             properties:
  *               MaBN:
  *                 type: string
@@ -35,6 +53,7 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *                 example: "Ho, sốt, đau đầu"
  *               CT_Benh:
  *                 type: array
+ *                 description: Danh sách mã bệnh
  *                 items:
  *                   type: string
  *                   example: "B0001"
@@ -42,58 +61,105 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *                 type: array
  *                 items:
  *                   type: object
+ *                   required:
+ *                     - MaThuoc
+ *                     - MaLo
+ *                     - SoLuong
+ *                     - DonGiaBan
  *                   properties:
  *                     MaThuoc:
  *                       type: string
  *                       example: "LT001"
+ *                     MaLo:
+ *                       type: string
+ *                       description: Mã lô đã được confirm
+ *                       example: "LO001"
  *                     SoLuong:
  *                       type: integer
  *                       example: 2
  *                     DonGiaBan:
- *                       type: number
+ *                       type: integer
  *                       example: 50000
- *                     ThanhTien:
- *                       type: number
- *                       example: 100000
  *               TongTienThuoc:
- *                 type: number
- *                 example: 200000
+ *                 type: integer
+ *                 example: 100000
  *     responses:
  *       201:
  *         description: Tạo phiếu khám bệnh thành công
  *         content:
  *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Tạo thành công phiếu khám bệnh"
- *                 MaPKB:
- *                   type: string
- *                   example: "PKB00001"
- *       409:
- *         description: Bệnh nhân không tồn tại
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Bệnh nhân không tồn tại"
+ *             example:
+ *               message: "Tạo phiếu khám thành công"
+ *               MaPKB: "PKB00012"
+ *       400:
+ *         description: Thiếu dữ liệu bắt buộc hoặc dữ liệu không hợp lệ
  *       500:
  *         description: Lỗi hệ thống
+ */
+router.post(
+  '/createMedicalExamForm',
+  medicalExamFormController.createMedicalExamForm
+);
+
+/* =====================================================
+   2. KIỂM TRA THUỐC & LẤY MÃ LÔ (CONFIRM)
+   ===================================================== */
+/**
+ * @swagger
+ * /medicalExamForm/confirmMedicalExamForm:
+ *   post:
+ *     summary: Kiểm tra tồn kho và lấy mã lô phù hợp
+ *     description: |
+ *       API này **KHÔNG trừ tồn kho**.
+ *       
+ *       🔹 Chức năng:
+ *       - Kiểm tra kho theo từng thuốc
+ *       - Tìm lô còn hạn sử dụng
+ *       - Đảm bảo đủ số lượng yêu cầu
+ *       - Ưu tiên lô có hạn dùng gần nhất
+ *
+ *       👉 Dùng API này để lấy **MaLo**
+ *       trước khi gọi API tạo phiếu khám bệnh
+ *     tags:
+ *       - MedicalExamForm
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: object
+ *               required:
+ *                 - MaThuoc
+ *                 - SoLuong
+ *               properties:
+ *                 MaThuoc:
+ *                   type: string
+ *                   example: "LT001"
+ *                 SoLuong:
+ *                   type: integer
+ *                   example: 2
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách thuốc kèm mã lô
  *         content:
  *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Internal Server Error"
+ *             example:
+ *               - MaThuoc: "LT001"
+ *                 MaLo: "LO001"
+ *               - MaThuoc: "LT002"
+ *                 MaLo: null
+ *       400:
+ *         description: Danh sách thuốc không hợp lệ
+ *       500:
+ *         description: Lỗi hệ thống
  */
-router.post('/createMedicalExamForm', medicalExamFormController.createMedicalExamForm);
+router.post(
+  '/confirmMedicalExamForm',
+  medicalExamFormController.confirmMedicalExamForm
+);
+
 
 /**
  * @swagger

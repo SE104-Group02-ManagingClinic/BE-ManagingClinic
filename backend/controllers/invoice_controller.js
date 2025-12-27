@@ -7,8 +7,14 @@ exports.createInvoice = async (req, res) => {
             MaPKB,
             NgayThanhToan,
             TienKham,
-            TienThuoc
+            TienThuoc // = 0 nghĩa là không mua thuốc
         } = req.body;
+
+        // Kiểm tra logic cơ bản
+        if (!MaPKB) {
+             return res.status(400).json({ message: "Thiếu mã phiếu khám bệnh" });
+        }
+
         const existed = await InvoiceService.existedInvoice(MaPKB);
         if (existed !== "" && existed !== null) {
             res.status(409).json({
@@ -20,18 +26,22 @@ exports.createInvoice = async (req, res) => {
             const data = {
                 MaPKB,
                 NgayThanhToan,
-                TienKham,
-                TienThuoc
+                TienKham: TienKham || 0,
+                TienThuoc: TienThuoc || 0
             }
+            
             const addInvoice = await InvoiceService.createInvoice(data);
+            
             if (addInvoice === null) {
                 res.status(500).json({error: 'Internal Server Error'});        
+            } else {
+                res.status(201).json({
+                    message: "Tạo thành công hóa đơn thanh toán", 
+                    MaHD: addInvoice.MaHD,
+                    TongTien: addInvoice.TongTien,
+                    GhiChu: addInvoice.Note // Trả về để biết có hoàn kho hay không
+                });
             }
-            res.status(201).json({
-                message: "Tạo thành công hóa đơn thanh toán", 
-                MaHD: addInvoice.MaHD,
-                TongTien: addInvoice.TongTien
-            });
         }
     }
     catch (error) {
