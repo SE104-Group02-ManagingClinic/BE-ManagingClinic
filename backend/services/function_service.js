@@ -33,7 +33,7 @@ class FunctionService {
         try {
             const {
                 TenChucNang,
-                TenManHinhDuocLoad
+                TenThanhPhanDuocLoad
             } = data;
             
             // Lay ma chuc nang cuoi cung
@@ -52,7 +52,7 @@ class FunctionService {
             const record = {
                 MaChucNang: nextId,
                 TenChucNang,
-                TenManHinhDuocLoad
+                TenThanhPhanDuocLoad
             }
             const result = await db.query(
                 "insert into CHUCNANG set ?",
@@ -109,15 +109,12 @@ class FunctionService {
     }
 
     // Cap nhat thong tin theo MaChucNang
-    static async updateFunction(MaChucNang, updateData) {
+    static async updateFunction(MaChucNang, TenThanhPhanDuocLoad) {
         try {
-            const {
-                TenChucNang,
-                TenManHinhDuocLoad
-            } = updateData;
+            
             const [rows] = await db.query(
-                "update CHUCNANG set TenChucNang = ?, TenManHinhDuocLoad = ? where MaChucNang = ?",
-                [TenChucNang, TenManHinhDuocLoad, MaChucNang]
+                "update CHUCNANG set TenManHinhDuocLoad = ? where MaChucNang = ?",
+                [TenThanhPhanDuocLoad, MaChucNang]
             );
             if (rows.affectedRows === 0) return false;
             return true;
@@ -130,17 +127,37 @@ class FunctionService {
     // Xóa chuc nang theo MaChucNang
     static async deleteFunction(MaChucNang) {
         try {
-            const [rows] = await db.query(
-                "delete from CHUCNANG where MaChucNang = ?",
+            // 1️. Kiểm tra chức năng đã được phân quyền hay chưa
+            const [check] = await db.query(
+                `SELECT 1 
+                FROM PHANQUYEN 
+                WHERE MaChucNang = ? 
+                LIMIT 1`,
                 [MaChucNang]
             );
+
+            // Nếu đã tồn tại trong PHANQUYEN → không cho xóa
+            if (check.length > 0) {
+                return false;
+            }
+
+            // 2️. Tiến hành xóa chức năng
+            const [rows] = await db.query(
+                `DELETE FROM CHUCNANG 
+                WHERE MaChucNang = ?`,
+                [MaChucNang]
+            );
+
             if (rows.affectedRows === 0) return false;
+
             return true;
         }
         catch (error) {
             console.log("FunctionService deleteFunction Error: ", error);
+            return false;
         }
     }
+
 }
 
 module.exports = FunctionService;
