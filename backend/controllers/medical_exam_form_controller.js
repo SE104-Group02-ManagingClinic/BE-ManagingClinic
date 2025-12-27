@@ -2,49 +2,68 @@ const MedicalExamFormService = require('../services/medical_exam_form_service');
 const PatientService = require('../services/patient_service');
 
 // Tao PKB
-exports.createMedicalExamForm = async(req, res) => {
-    try {
-        const {
-            MaBN,
-            NgayKham,
-            TrieuChung,
-            CT_Benh,
-            CT_Thuoc,
-            TongTienThuoc
-        } = req.body;
-        const data = {
-            MaBN,
-            NgayKham,
-            TrieuChung,
-            CT_Benh,
-            CT_Thuoc,
-            TongTienThuoc
-        }
-        // Kiem tra benh nhan co ton tai khong
-        const existed = await PatientService.existedPatientById(MaBN);
-        if (existed === false) {
-            res.status(409).json({message: "Bệnh nhân không tồn tại"});
-        }
-        const addForm = await MedicalExamFormService.createExamForm(data);
-        console.log(addForm);
-        if (addForm === null) {
-            res.status(500).json({error: 'Internal Server Error'});        
-        }
-        else if (addForm === "") {
-            res.status(400).json({error: 'Tạo không thành công'});    
-        }
-        else {
-            res.status(201).json({
-                message: "Tạo thành công phiếu khám bệnh", 
-                MaPKB: addForm
-            });
-        }
+exports.createMedicalExamForm = async (req, res) => {
+  try {
+    const {
+      MaBN,
+      NgayKham,
+      TrieuChung,
+      CT_Thuoc
+    } = req.body;
+
+    if (!MaBN || !NgayKham) {
+      return res.status(400).json({
+        message: "Thiếu dữ liệu bắt buộc"
+      });
     }
-    catch (error) {
-        console.error('Error createMedicalExamForm: ', error);
-        res.status(500).json({error: 'Internal Server Error'});
+
+    const result =
+      await MedicalExamFormService.createMedicalExamForm({
+        MaBN,
+        NgayKham,
+        TrieuChung,
+        CT_Thuoc
+      });
+
+    if (!result) {
+      return res.status(500).json({
+        error: "Internal Server Error"
+      });
     }
-}
+
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("createMedicalExamForm error:", error);
+    return res.status(500).json({
+      error: "Internal Server Error"
+    });
+  }
+};
+
+// Xác nhận kê thuốc – trừ tồn kho
+exports.confirmMedicalExamForm = async (req, res) => {
+  try {
+    const danhSachThuoc = req.body;
+
+    if (!Array.isArray(danhSachThuoc) || danhSachThuoc.length === 0) {
+      return res.status(400).json({
+        message: "Danh sách thuốc không hợp lệ"
+      });
+    }
+
+    const result =
+      await MedicalExamFormService.confirmMedicalExamForm(danhSachThuoc);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("confirmMedicalExamForm error:", error);
+    return res.status(500).json({
+      error: "Internal Server Error"
+    });
+  }
+};
+
+
 
 // Cập nhật Phiếu kham benh
 exports.updateMedicalExamForm = async(req, res) => {

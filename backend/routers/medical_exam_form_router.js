@@ -10,10 +10,14 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
 
 /**
  * @swagger
+ *
  * /medicalExamForm/createMedicalExamForm:
  *   post:
  *     summary: Tạo phiếu khám bệnh (PKB)
- *     description: API dùng để tạo mới phiếu khám bệnh cho bệnh nhân, bao gồm triệu chứng, danh sách bệnh và thuốc. Nếu bệnh nhân không tồn tại, trả về lỗi 409.
+ *     description: |
+ *       API tạo phiếu khám bệnh.
+ *       - Chỉ ghi nhận kê đơn, KHÔNG trừ tồn kho.
+ *       - Mỗi thuốc trong CT_Thuoc bắt buộc có MaLo (lô thuốc đã được xác nhận trước).
  *     tags:
  *       - MedicalExamForm
  *     requestBody:
@@ -46,54 +50,71 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *                     MaThuoc:
  *                       type: string
  *                       example: "LT001"
+ *                     MaLo:
+ *                       type: string
+ *                       example: "LO001"
  *                     SoLuong:
  *                       type: integer
  *                       example: 2
  *                     DonGiaBan:
- *                       type: number
+ *                       type: integer
  *                       example: 50000
  *                     ThanhTien:
- *                       type: number
+ *                       type: integer
  *                       example: 100000
  *               TongTienThuoc:
- *                 type: number
+ *                 type: integer
  *                 example: 200000
  *     responses:
- *       201:
- *         description: Tạo phiếu khám bệnh thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Tạo thành công phiếu khám bệnh"
- *                 MaPKB:
- *                   type: string
- *                   example: "PKB00001"
- *       409:
- *         description: Bệnh nhân không tồn tại
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Bệnh nhân không tồn tại"
+ *       200:
+ *         description: Thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
  *       500:
  *         description: Lỗi hệ thống
- *         content:
- *           application/json:
- *             schema:
+ */
+router.post(
+  '/createMedicalExamForm',
+  medicalExamFormController.createMedicalExamForm
+);
+
+
+/**
+ * @swagger
+ *
+ * /medicalExamForm/confirmMedicalExamForm:
+ *   post:
+ *     summary: Kiểm tra tồn kho và tự động gán lô thuốc
+ *     tags:
+ *       - MedicalExamForm
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
  *               type: object
  *               properties:
- *                 error:
+ *                 MaThuoc:
  *                   type: string
- *                   example: "Internal Server Error"
+ *                   example: "LT001"
+ *                 SoLuong:
+ *                   type: integer
+ *                   example: 2
+ *     responses:
+ *       200:
+ *         description: Đủ thuốc, trả về lô tương ứng
+ *       409:
+ *         description: Không đủ thuốc trong kho
+ *       500:
+ *         description: Lỗi hệ thống
  */
-router.post('/createMedicalExamForm', medicalExamFormController.createMedicalExamForm);
+router.post(
+  '/confirmMedicalExamForm',
+  medicalExamFormController.confirmMedicalExamForm
+);
+
 
 /**
  * @swagger

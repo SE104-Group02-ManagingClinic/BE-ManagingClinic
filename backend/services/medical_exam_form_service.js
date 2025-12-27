@@ -13,83 +13,138 @@ class MedicalExamForm {
         return newId;
     }
 
-    static async createExamForm (data) {
+    static async createMedicalExamForm(data) {
         try {
             const {
-                MaBN,
-                NgayKham,
-                TrieuChung,
-                CT_Benh,
-                CT_Thuoc,
-                TongTienThuoc
+            MaBN,
+            NgayKham,
+            TrieuChung,
+            CT_Thuoc
             } = data;
 
-            // Lay MaPKB cuoi dung
-            const [rows] = await db.query(
-                `select MaPKB 
-                from PHIEUKHAMBENH 
-                order by MaPKB desc 
-                limit 1`
-            );
-            let lastId = "";
-            if (rows.length > 0) {
-                lastId = rows[0].MaPKB;
-            }
-            
-            // Tao MaPKB
-            const nextId = this.createId(lastId);
+            await db.beginTransaction();
 
-            // Tao record
-            const record = {
-                MaPKB: nextId,
-                MaBN,
-                NgayKham,
-                TrieuChung,
-                TongTienThuoc
-            }
-            const [result] = await db.query(
-                "insert into PHIEUKHAMBENH set ?",
-                [record]
+            // 1. Sinh MaPKB
+            const [[row]] = await db.query(
+            "SELECT MaPKB FROM PHIEUKHAMBENH ORDER BY MaPKB DESC LIMIT 1"
             );
 
-            // Nếu tạo thành công (affectedRows > 0) thì mới thêm CT_BENH và CT_THUOC
-            if (result.affectedRows > 0) {
-                // Tạo CT_BENH
-                for (let i = 0; i < CT_Benh.length; i++) {
-                    const recordBenh = {
-                        MaPKB: nextId,
-                        MaBenh: CT_Benh[i]
-                    };
-                    await db.query(
-                        "INSERT INTO CT_BENH SET ?",
-                        [recordBenh]
-                    );
+            let MaPKB = "PKB001";
+            if (row) {
+            const num = parseInt(row.MaPKB.slice(3)) + 1;
+            MaPKB = "PKB" + num.toString().padStart(3, "0");
+            }
+
+            // 2. Insert PHIEUKHAMBENH
+            await db.query(
+            `
+            INSERT INTO PHIEUKHAMBENH
+            (MaPKB, MaBN, NgayKham, TrieuChung)
+            VALUES (?, ?, ?, ?)
+            `,
+            [MaPKB, MaBN, NgayKham, TrieuChung]
+            );
+
+            // 3. Insert CT_THUOC (BẮT BUỘC MaLo)
+            if (Array.isArray(CT_Thuoc)) {
+            for (const t of CT_Thuoc) {
+                if (!t.MaLo) {
+                await db.rollback();
+                return null;
                 }
 
-                // Tạo CT_THUOC
-                for (let i = 0; i < CT_Thuoc.length; i++) {
-                    const recordThuoc = {
-                        MaThuoc: CT_Thuoc[i].MaThuoc,
-                        MaPKB: nextId,
-                        SoLuong: CT_Thuoc[i].SoLuong,
-                        DonGiaBan: CT_Thuoc[i].DonGiaBan,
-                        ThanhTien: CT_Thuoc[i].ThanhTien
-                    };
-                    await db.query(
-                        "INSERT INTO CT_THUOC SET ?",
-                        [recordThuoc]
-                    );
-                }
-                return nextId;
+                const ThanhTien = t.SoLuong * t.DonGiaBan;
+
+                await db.query(
+                `
+                INSERT INTO CT_THUOC
+                (MaThuoc, MaLo, MaPKB, SoLuong, DonGiaBan, ThanhTien)
+                VALUES (?, ?, ?, ?, ?, ?)
+                `,
+                [
+                    t.MaThuoc,
+                    t.MaLo,
+                    MaPKB,
+                    t.SoLuong,
+                    t.DonGiaBan,
+                    ThanhTien
+                ]
+                );
             }
-            else return "";
-        }
-        catch (error) {
-            console.log("MedicalExamForm createMedicalExamForm error: ", error);
+            }
+
+            await db.commit();
+
+            return {
+            MaPKB,
+            MaBN,
+            NgayKham
+            };
+        } catch (error) {
+            await db.rollback();
+            console.error("createMedicalExamForm service error:", error);
             return null;
         }
-
     }
+
+    // Xác nhận thuốc & trừ tồn kho theo lô
+    static async confirmMedicalExamForm(danhSachThuoc) {
+        try {
+            const result = [];
+            await db.beginTransaction();
+
+            for (const item of danhSachThuoc) {
+                const { MaThuoc, SoLuong } = item;
+
+                // Tìm lô còn hạn, đủ số lượng, ưu tiên hạn gần nhất
+                const [[lo]] = await db.query(
+                    `
+                    SELECT MaLo, SoLuongTon
+                    FROM LOTHUOC
+                    WHERE MaThuoc = ?
+                    AND HanSuDung >= CURDATE()
+                    AND SoLuongTon >= ?
+                    ORDER BY HanSuDung ASC
+                    LIMIT 1
+                    `,
+                    [MaThuoc, SoLuong]
+                );
+
+                // Không đủ thuốc
+                if (!lo) {
+                    result.push({
+                        MaThuoc,
+                        MaLo: -1
+                    });
+                    continue;
+                }
+
+                // Trừ tồn kho
+                await db.query(
+                    `
+                    UPDATE LOTHUOC
+                    SET SoLuongTon = SoLuongTon - ?
+                    WHERE MaLo = ?
+                    `,
+                    [SoLuong, lo.MaLo]
+                );
+
+                result.push({
+                    MaThuoc,
+                    MaLo: lo.MaLo
+                });
+            }
+
+            await db.commit();
+            return result;
+        } catch (error) {
+            await db.rollback();
+            console.error("confirmMedicalExamForm service error:", error);
+            throw error;
+        }
+    }
+
+
 
     // Cap nhat phieu kham benh
     static async updateExamForm (MaPKB, data) {
