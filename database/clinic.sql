@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS CLINIC_DB;
 USE CLINIC_DB;
 
+
 CREATE TABLE CHUCNANG(
     MaChucNang VARCHAR(5) PRIMARY KEY,
     TenChucNang VARCHAR(30) UNIQUE,
@@ -27,6 +28,13 @@ CREATE TABLE NGUOIDUNG(
     FOREIGN KEY (MaNhom)  REFERENCES NHOMNGUOIDUNG(MaNhom)
 );
 
+-- Bảng Tham so
+CREATE TABLE THAMSO (
+    SoBenhNhanToiDa int not null,
+    TiLeTinhDonGiaBan float not null,
+    TienKham INT not null
+);
+
 -- Bảng lưu trữ thông tin về các loại bệnh
 CREATE TABLE BENH (
     MaBenh VARCHAR(5) PRIMARY KEY NOT NULL,
@@ -44,14 +52,14 @@ CREATE TABLE BENHNHAN (
     CCCD VARCHAR(12) UNIQUE,
     GioiTinh VARCHAR(5),
     NamSinh DATE,
-    DiaChi NVARCHAR(100),
+    DiaChi VARCHAR(100),
     SDT VARCHAR(10)
 );
 
 -- Bảng lưu trữ thông tin đơn vị tính của thuốc (viên, hộp, chai,...)
 CREATE TABLE DONVITINH (
     MaDVT VARCHAR(5) PRIMARY KEY NOT NULL,
-    TenDVT NVARCHAR(20) UNIQUE
+    TenDVT VARCHAR(20) UNIQUE
 );
 
 -- Bảng lưu trữ cách dùng thuốc
@@ -62,22 +70,37 @@ CREATE TABLE CACHDUNG (
 
 -- Bảng lưu trữ thông tin các loại thuốc
 CREATE TABLE LOAITHUOC (
-    MaThuoc VARCHAR(5),
-    SoLo VARCHAR(8), 
+    MaThuoc VARCHAR(5) PRIMARY KEY,
     TenThuoc VARCHAR(20) UNIQUE,
     CongDung  TEXT,
     MaCachDung VARCHAR(5),
     MaDVT VARCHAR(5),
     TacDungPhu  TEXT,
-    SoLuongTon  INT not null default 0,
-    GiaBan INTEGER not null default 0,
-    HanSuDung DATE,
 
-    PRIMARY KEY (MaThuoc, SoLo),
     FOREIGN KEY (MaDVT) REFERENCES DONVITINH(MaDVT),
     FOREIGN KEY (MaCachDung) REFERENCES CACHDUNG(MaCachDung)
 );
 
+-- Bang Số lô
+CREATE TABLE LOTHUOC (
+    MaLo VARCHAR(5) PRIMARY KEY,
+    MaThuoc VARCHAR(5),
+    GiaBan INT,
+    SoLuongTon INT,
+    HanSuDung DATE,
+
+    FOREIGN KEY (MaThuoc) REFERENCES LOAITHUOC(MaThuoc)
+);
+
+-- Bảng Phiếu Nhập Thuốc
+CREATE TABLE PHIEUNHAPTHUOC (
+    MaPNT VARCHAR(6) PRIMARY KEY not null,
+    MaLo VARCHAR(5),
+    GiaNhap INT,
+    NgayNhap DATE,
+    SoLuongNhap INT,
+    FOREIGN KEY (MaLo) REFERENCES LOTHUOC(MaLo)
+);
 
 -- Bảng Phiếu Khám Bệnh (Chứa thông tin khám bệnh tổng quát)
 CREATE TABLE PHIEUKHAMBENH (
@@ -92,14 +115,16 @@ CREATE TABLE PHIEUKHAMBENH (
 -- Bảng Chi Tiết Thuốc trong Phiếu Khám Bệnh (Đơn thuốc)
 CREATE TABLE CT_THUOC (
     MaThuoc VARCHAR(5),
-    SoLo VARCHAR(8),
+    MaLo VARCHAR(5),
     MaPKB VARCHAR(8),
     SoLuong INT,
     DonGiaBan INT,
     ThanhTien INT,
-    PRIMARY KEY (MaPKB, MaThuoc, SoLo),
+
+    PRIMARY KEY (MaThuoc, MaLo, MaPKB),
     FOREIGN KEY (MaPKB) REFERENCES PHIEUKHAMBENH(MaPKB),
-    FOREIGN KEY (MaThuoc, SoLo) REFERENCES LOAITHUOC(MaThuoc, SoLo)
+    FOREIGN KEY (MaThuoc) REFERENCES LOAITHUOC(MaThuoc),
+    FOREIGN KEY (MaLo) REFERENCES LOTHUOC(MaLo)
 );
 
 -- Bảng Chi Tiết Bệnh của Phiếu Khám Bệnh (Nhiều bệnh trong 1 lần khám)
@@ -109,42 +134,6 @@ CREATE TABLE CT_BENH (
     PRIMARY KEY (MaPKB, MaBenh),
     FOREIGN KEY (MaPKB) REFERENCES PHIEUKHAMBENH(MaPKB),
     FOREIGN KEY (MaBenh) REFERENCES BENH(MaBenh)
-);
-
--- Bảng Phiếu Nhập Thuốc
-CREATE TABLE PHIEUNHAPTHUOC (
-    MaPNT VARCHAR(6) PRIMARY KEY not null,
-    MaThuoc VARCHAR(5),
-    GiaNhap INT,
-    NgayNhap DATE,
-    SoLuongNhap INT,
-    FOREIGN KEY (MaThuoc) REFERENCES LOAITHUOC(MaThuoc)
-);
-
--- Bảng Thông Số liên quan đến thuốc (VD: Hạn sử dụng, lô sản xuất,...)
-CREATE TABLE THAMSO (
-    SoBenhNhanToiDa int not null,
-    TiLeTinhDonGiaBan float not null,
-    TienKham INT not null
-);
-
--- Bảng Báo Cáo Sử Dụng Thuốc (Tổng hợp)
-CREATE TABLE BAOCAOSUDUNGTHUOC (
-    MaBCSDT VARCHAR(8),
-    Thang INT,
-    Nam INT,
-    PRIMARY KEY(MaBCSDT, Thang, Nam)
-);
-
--- Bảng Chi Tiết Báo Cáo Sử Dụng Thuốc
-CREATE TABLE CT_BCSDT (
-    MaBCSDT VARCHAR(8),
-    MaThuoc VARCHAR(5),
-    SoLanDung INT,
-    SoLuongDung INT,
-    FOREIGN KEY (MaThuoc) REFERENCES LOAITHUOC(MaThuoc),
-    FOREIGN KEY (MaBCSDT) REFERENCES BAOCAOSUDUNGTHUOC(MaBCSDT),
-    PRIMARY KEY (MaBCSDT, MaThuoc)
 );
 
 -- Bảng Hóa Đơn Thanh Toán (Lưu trữ thông tin thanh toán cho Phiếu Khám Bệnh)
@@ -158,12 +147,34 @@ CREATE TABLE HOADONTHANHTOAN (
     FOREIGN KEY (MaPKB) REFERENCES PHIEUKHAMBENH(MaPKB)
 );
 
+-- Bảng Báo Cáo Sử Dụng Thuốc (Tổng hợp)
+CREATE TABLE BAOCAOSUDUNGTHUOC (
+    MaBCSDT VARCHAR(8) PRIMARY KEY,
+    Thang INT,
+    Nam INT,
+    UNIQUE (Thang, Nam)   -- mỗi tháng/năm chỉ có một báo cáo
+);
+
+-- Bảng Chi Tiết Báo Cáo Sử Dụng Thuốc
+CREATE TABLE CT_BCSDT (
+    MaBCSDT VARCHAR(8),
+    MaThuoc VARCHAR(5),
+    SoLanDung INT,
+    SoLuongDung INT,
+    PRIMARY KEY (MaBCSDT, MaThuoc),
+    FOREIGN KEY (MaThuoc) REFERENCES LOAITHUOC(MaThuoc),
+    FOREIGN KEY (MaBCSDT) REFERENCES BAOCAOSUDUNGTHUOC(MaBCSDT)
+);
+
+
 -- Bảng Báo Cáo Doanh Thu (Tổng hợp)
 CREATE TABLE BAOCAODOANHTHU (
     MaBCDT VARCHAR(8) PRIMARY KEY,
-    THANG INT,
-    NAM INT,
-    TongDoanhThu INT
+    Thang INT,
+    Nam INT,
+    TongDoanhThu INT,
+
+    UNIQUE (Thang, Nam)   -- mỗi tháng/năm chỉ có một báo cáo
 );
 
 -- Bảng Chi Tiết Báo Cáo Doanh Thu (Chi tiết theo từng hóa đơn, loại dịch vụ/thuốc...)

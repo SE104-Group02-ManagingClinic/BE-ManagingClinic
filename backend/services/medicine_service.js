@@ -52,8 +52,6 @@ class MedicineService {
                 MaCachDung,
                 MaDVT,
                 TacDungPhu,
-                SoLuongTon,
-                GiaBan
             } = data;
 
             // Lấy mã thuốc cuối
@@ -72,9 +70,7 @@ class MedicineService {
                 CongDung,
                 MaCachDung,
                 MaDVT,
-                TacDungPhu,
-                SoLuongTon: 0,
-                GiaBan: 0
+                TacDungPhu
             };
 
             await db.query("INSERT INTO LOAITHUOC SET ?", [record]);
@@ -97,14 +93,45 @@ class MedicineService {
                     d.TenDVT,
                     c.TenCachDung,
                     t.TacDungPhu,
-                    t.SoLuongTon,
-                    t.GiaBan
+
+                    l.MaLo,
+                    l.SoLuongTon,
+                    l.GiaBan,
+                    l.HanSuDung
                 FROM LOAITHUOC t
                 LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
                 LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
-                ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)
+                LEFT JOIN LOTHUOC l ON t.MaThuoc = l.MaThuoc
+                ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED), l.HanSuDung
             `);
-            return rows;
+
+            // Gom dữ liệu theo MaThuoc
+            const medicines = {};
+
+            for (const row of rows) {
+                if (!medicines[row.MaThuoc]) {
+                    medicines[row.MaThuoc] = {
+                        MaThuoc: row.MaThuoc,
+                        TenThuoc: row.TenThuoc,
+                        CongDung: row.CongDung,
+                        TenDVT: row.TenDVT,
+                        TenCachDung: row.TenCachDung,
+                        TacDungPhu: row.TacDungPhu,
+                        LoThuoc: []
+                    };
+                }
+
+                if (row.MaLo) {
+                    medicines[row.MaThuoc].LoThuoc.push({
+                        MaLo: row.MaLo,
+                        SoLuongTon: row.SoLuongTon,
+                        GiaBan: row.GiaBan,
+                        HanSuDung: row.HanSuDung
+                    });
+                }
+            }
+
+            return Object.values(medicines);
         }
         catch (error) {
             console.log("MedicineService getMedicine Error:", error);
@@ -113,54 +140,79 @@ class MedicineService {
 
     // Tìm kiếm thuốc theo tiêu chuẩn (Tên thuốc, Đơn vị tính, Tình trạng)
     static async searchMedicine(filters) {
-        try {
-            const { TenThuoc, TenDVT } = filters || {};
+    try {
+        const { TenThuoc, CongDung } = filters || {};
 
-            let sql = `
-                SELECT
-                    t.MaThuoc,
-                    t.TenThuoc,
-                    t.CongDung,
-                    c.TenCachDung,
-                    d.TenDVT,
-                    t.TacDungPhu,
-                    t.SoLuongTon,
-                    t.GiaBan
-                FROM LOAITHUOC t
-                LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
-                LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
-                WHERE 1=1
-            `;
+        let sql = `
+            SELECT 
+                t.MaThuoc,
+                t.TenThuoc,
+                t.CongDung,
+                d.TenDVT,
+                c.TenCachDung,
+                t.TacDungPhu,
 
-            const params = [];
+                l.MaLo,
+                l.SoLuongTon,
+                l.GiaBan,
+                l.HanSuDung
+            FROM LOAITHUOC t
+            LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
+            LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
+            LEFT JOIN LOTHUOC l ON t.MaThuoc = l.MaThuoc
+            WHERE 1=1
+        `;
 
-            if (TenThuoc) {
-                sql += ` AND t.TenThuoc LIKE ? COLLATE utf8mb4_unicode_ci`;
-                params.push(`%${TenThuoc}%`);
+        const params = [];
+
+        if (TenThuoc || CongDung) {
+            sql += ` AND (t.TenThuoc LIKE ? OR t.CongDung LIKE ?)`;
+            params.push(`%${TenThuoc || ""}%`, `%${CongDung || ""}%`);
+        }
+
+        sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED), l.HanSuDung`;
+
+        const [rows] = await db.query(sql, params);
+
+        // Gom dữ liệu theo thuốc
+        const medicines = {};
+
+        for (const row of rows) {
+            if (!medicines[row.MaThuoc]) {
+                medicines[row.MaThuoc] = {
+                    MaThuoc: row.MaThuoc,
+                    TenThuoc: row.TenThuoc,
+                    CongDung: row.CongDung,
+                    TenDVT: row.TenDVT,
+                    TenCachDung: row.TenCachDung,
+                    TacDungPhu: row.TacDungPhu,
+                    LoThuoc: []
+                };
             }
 
-            if (TenDVT) {
-                sql += ` AND d.TenDVT LIKE ? COLLATE utf8mb4_unicode_ci`;
-                params.push(`%${TenDVT}%`);
+            if (row.MaLo) {
+                medicines[row.MaThuoc].LoThuoc.push({
+                    MaLo: row.MaLo,
+                    SoLuongTon: row.SoLuongTon,
+                    GiaBan: row.GiaBan,
+                    HanSuDung: row.HanSuDung
+                });
             }
-
-            sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED)`;
-
-            const [rows] = await db.query(sql, params);
-            return rows;
         }
-        catch (error) {
-            console.log("MedicineService searchMedicine Error:", error);
-            return null;
-        }
+
+        return Object.values(medicines);
     }
+    catch (error) {
+        console.log("MedicineService searchMedicine Error:", error);
+        return null;
+    }
+}
 
 
     // Cập nhật thuốc
     static async updateMedicine(MaThuoc, updateData) {
         try {
             const {
-                TenThuoc,
                 CongDung,
                 MaCachDung,
                 MaDVT,
@@ -171,7 +223,6 @@ class MedicineService {
                 `
                 UPDATE LOAITHUOC
                 SET
-                    TenThuoc = ?,
                     CongDung = ?,
                     MaCachDung = ?,
                     MaDVT = ?,
@@ -179,7 +230,6 @@ class MedicineService {
                 WHERE MaThuoc = ?
                 `,
                 [
-                    TenThuoc,
                     CongDung,
                     MaCachDung,
                     MaDVT,
@@ -196,30 +246,33 @@ class MedicineService {
             return null;
         }
     }
-
+    
+    // Kiểm tra trước khi xóa
     static async canDeleteMedicine(MaThuoc) {
         try {
-            const [[ctThuoc]] = await db.query(
-                "SELECT 1 FROM CT_THUOC WHERE MaThuoc = ? LIMIT 1",
+            // 1. Kiểm tra đã từng được kê đơn chưa
+            const [[usedInPrescription]] = await db.query(
+                `SELECT 1 FROM CT_THUOC WHERE MaThuoc = ? LIMIT 1`,
                 [MaThuoc]
             );
 
-            if (ctThuoc) {
+            if (usedInPrescription) {
                 return {
                     ok: false,
-                    message: "Không thể xóa thuốc đã được sử dụng trong đơn thuốc"
+                    message: "Không thể xóa thuốc đã được kê đơn"
                 };
             }
 
-            const [[pnt]] = await db.query(
-                "SELECT 1 FROM PHIEUNHAPTHUOC WHERE MaThuoc = ? LIMIT 1",
+            // 2. Kiểm tra đã tồn tại lô thuốc chưa
+            const [[hasLot]] = await db.query(
+                `SELECT 1 FROM LOTHUOC WHERE MaThuoc = ? LIMIT 1`,
                 [MaThuoc]
             );
 
-            if (pnt) {
+            if (hasLot) {
                 return {
                     ok: false,
-                    message: "Không thể xóa thuốc đã có phiếu nhập"
+                    message: "Không thể xóa thuốc đã tồn tại lô thuốc"
                 };
             }
 
@@ -229,26 +282,38 @@ class MedicineService {
             console.log("MedicineService canDeleteMedicine Error:", error);
             return {
                 ok: false,
-                message: "Lỗi kiểm tra trước khi xóa"
+                message: "Lỗi kiểm tra điều kiện xóa thuốc"
             };
         }
     }
 
+
     // Xóa thuốc
     static async deleteMedicine(MaThuoc) {
         try {
-            const [rows] = await db.query(
+            const check = await this.canDeleteMedicine(MaThuoc);
+
+            if (!check.ok) {
+                return check; // trả về message nghiệp vụ
+            }
+
+            const [result] = await db.query(
                 "DELETE FROM LOAITHUOC WHERE MaThuoc = ?",
                 [MaThuoc]
             );
 
-            if (rows.affectedRows === 0) return false;
-            return true;
+            if (result.affectedRows === 0) {
+                return { ok: false, message: "Không tìm thấy thuốc để xóa" };
+            }
+
+            return { ok: true };
         }
         catch (error) {
             console.log("MedicineService deleteMedicine Error:", error);
+            return { ok: false, message: "Lỗi hệ thống khi xóa thuốc" };
         }
     }
+
 
     // Kiểm tra tên thuốc tồn tại
     static async existedMedicine(tenThuoc) {

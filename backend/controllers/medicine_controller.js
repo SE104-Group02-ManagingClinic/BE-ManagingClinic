@@ -10,16 +10,9 @@ exports.createMedicine = async (req, res) => {
             MaCachDung,
             MaDVT,
             TacDungPhu,
-            SoLuongTon,
-            GiaBan
         } = req.body;
 
-        if (SoLuongTon < 0 || GiaBan < 0) {
-            return res.status(400).json({
-                message: "Số lượng tồn và giá bán phải >= 0"
-            });
-        }
-
+        
         // Kiểm tra tên thuốc trùng
         const existed = await MedicineService.existedMedicine(TenThuoc);
         if (existed) {
@@ -61,11 +54,11 @@ exports.getMedicine = async (req, res) => {
 // Tìm kiếm thuốc theo tiêu chuẩn: TenThuoc, TenDVT
 exports.searchMedicine = async (req, res) => {
     try {
-        const { TenThuoc, TenDVT } = req.query;
+        const { TenThuoc, CongDung } = req.query;
 
         const filters = {
             TenThuoc: TenThuoc || undefined,
-            TenDVT: TenDVT || undefined
+            CongDung: CongDung || undefined
         };
 
         const rows = await MedicineService.searchMedicine(filters);
@@ -86,7 +79,6 @@ exports.updateMedicine = async (req, res) => {
     try {
         const { MaThuoc } = req.params;
         const {
-            TenThuoc,
             CongDung,
             MaCachDung,
             MaDVT,
@@ -104,7 +96,6 @@ exports.updateMedicine = async (req, res) => {
         const result = await MedicineService.updateMedicine(
             MaThuoc,
             {
-                TenThuoc,
                 CongDung,
                 MaCachDung,
                 MaDVT,

@@ -7,7 +7,8 @@ exports.createMedicineImport = async (req, res) => {
             MaThuoc,
             GiaNhap,
             NgayNhap,
-            SoLuongNhap
+            SoLuongNhap,
+            HanSuDung
         } = req.body;
 
         if (!MaThuoc || !NgayNhap) {
@@ -26,7 +27,8 @@ exports.createMedicineImport = async (req, res) => {
             MaThuoc,
             GiaNhap,
             NgayNhap,
-            SoLuongNhap
+            SoLuongNhap,
+            HanSuDung
         });
 
         if (result.error === "MEDICINE_NOT_FOUND") {
@@ -69,50 +71,65 @@ exports.getMedicineImport = async (req, res) => {
 exports.updateMedicineImport = async (req, res) => {
     try {
         const { MaPNT } = req.params;
-        const {
-            GiaNhap,
-            NgayNhap,
-            SoLuongNhap
-        } = req.body;
+        const { GiaNhap, NgayNhap, SoLuongNhap, HanSuDung } = req.body;
 
+        // Validate input cơ bản
         if (GiaNhap < 0 || SoLuongNhap <= 0) {
             return res.status(400).json({
                 message: "Giá nhập hoặc số lượng không hợp lệ"
             });
         }
 
-        const result = await MedicineImportService.updateMedicineImport(
-            MaPNT,
-            {
-                GiaNhap,
-                NgayNhap,
-                SoLuongNhap
-            }
-        );
+        const result = await MedicineImportService.updateMedicineImport(MaPNT, {
+            GiaNhap,
+            NgayNhap,
+            SoLuongNhap,
+            HanSuDung
+        });
 
-        if (result === false) {
+        // Không tìm thấy phiếu nhập
+        if (result?.error === "PNT_NOT_FOUND") {
             return res.status(404).json({
                 message: "Không tìm thấy phiếu nhập thuốc"
             });
         }
 
+        // Lô đã được kê đơn
+        if (result?.error === "LOT_ALREADY_USED") {
+            return res.status(409).json({
+                message: "Không thể cập nhật vì lô thuốc đã được kê đơn"
+            });
+        }
+
+        // Làm âm tồn kho
         if (result?.error === "INVALID_STOCK") {
             return res.status(400).json({
                 message: "Cập nhật làm tồn kho thuốc bị âm"
             });
         }
 
-        if (result === null) {
-            return res.status(500).json({ error: "Internal Server Error" });
+        // Lỗi cập nhật
+        if (result?.error === "UPDATE_FAILED") {
+            return res.status(500).json({
+                message: "Cập nhật thất bại"
+            });
         }
 
+        // Lỗi hệ thống
+        if (result?.error === "SYSTEM_ERROR") {
+            return res.status(500).json({
+                message: "Lỗi hệ thống"
+            });
+        }
+
+        // Thành công
         return res.status(200).json({
-            message: "Cập nhật thành công"
+            message: "Cập nhật phiếu nhập thành công"
         });
     }
     catch (error) {
         console.error("Error updateMedicineImport:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json({ message: "Lỗi hệ thống" });
     }
 };
 
@@ -123,21 +140,44 @@ exports.deleteMedicineImport = async (req, res) => {
 
         const result = await MedicineImportService.deleteMedicineImport(MaPNT);
 
-        if (result === null) {
-            return res.status(500).json({ error: "Internal Server Error" });
-        }
-        if (result === false) {
+        // Không tìm thấy phiếu nhập
+        if (result?.error === "PNT_NOT_FOUND") {
             return res.status(404).json({
                 message: "Không tìm thấy phiếu nhập thuốc"
             });
         }
 
+        // Lô đã được kê đơn
+        if (result?.error === "LOT_ALREADY_USED") {
+            return res.status(409).json({
+                message: "Không thể xóa phiếu nhập vì lô thuốc đã được kê đơn"
+            });
+        }
+
+        // Lỗi xóa
+        if (result?.error === "DELETE_FAILED") {
+            return res.status(500).json({
+                message: "Xóa phiếu nhập thất bại"
+            });
+        }
+
+        // Lỗi hệ thống
+        if (result?.error === "SYSTEM_ERROR") {
+            return res.status(500).json({
+                message: "Lỗi hệ thống"
+            });
+        }
+
+        // Thành công
         return res.status(200).json({
-            message: "Xóa thành công"
+            message: "Xóa phiếu nhập thuốc thành công"
         });
     }
     catch (error) {
-        console.error("Error deleteMedicineImpor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        console.error("Error deleteMedicineImport:", error);
+        return res.status(500).json({
+            message: "Lỗi hệ thống"
+        });
     }
 };
+
