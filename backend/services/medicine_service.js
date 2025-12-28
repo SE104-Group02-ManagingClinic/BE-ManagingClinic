@@ -138,75 +138,80 @@ class MedicineService {
         }
     }
 
-    // Tìm kiếm thuốc theo tiêu chuẩn (Tên thuốc, Đơn vị tính, Tình trạng)
+    // Tìm kiếm thuốc theo tiêu chuẩn: TenThuoc, CongDung
     static async searchMedicine(filters) {
-    try {
-        const { TenThuoc, CongDung } = filters || {};
+        try {
+            const { TenThuoc, CongDung } = filters || {};
 
-        let sql = `
-            SELECT 
-                t.MaThuoc,
-                t.TenThuoc,
-                t.CongDung,
-                d.TenDVT,
-                c.TenCachDung,
-                t.TacDungPhu,
+            let sql = `
+                SELECT 
+                    t.MaThuoc,
+                    t.TenThuoc,
+                    t.CongDung,
+                    d.TenDVT,
+                    c.TenCachDung,
+                    t.TacDungPhu,
 
-                l.MaLo,
-                l.SoLuongTon,
-                l.GiaBan,
-                l.HanSuDung
-            FROM LOAITHUOC t
-            LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
-            LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
-            LEFT JOIN LOTHUOC l ON t.MaThuoc = l.MaThuoc
-            WHERE 1=1
-        `;
+                    l.MaLo,
+                    l.SoLuongTon,
+                    l.GiaBan,
+                    l.HanSuDung
+                FROM LOAITHUOC t
+                LEFT JOIN DONVITINH d ON t.MaDVT = d.MaDVT
+                LEFT JOIN CACHDUNG c ON t.MaCachDung = c.MaCachDung
+                LEFT JOIN LOTHUOC l ON t.MaThuoc = l.MaThuoc
+                WHERE 1=1
+            `;
 
-        const params = [];
+            const params = [];
 
-        if (TenThuoc || CongDung) {
-            sql += ` AND (t.TenThuoc LIKE ? OR t.CongDung LIKE ?)`;
-            params.push(`%${TenThuoc || ""}%`, `%${CongDung || ""}%`);
-        }
-
-        sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED), l.HanSuDung`;
-
-        const [rows] = await db.query(sql, params);
-
-        // Gom dữ liệu theo thuốc
-        const medicines = {};
-
-        for (const row of rows) {
-            if (!medicines[row.MaThuoc]) {
-                medicines[row.MaThuoc] = {
-                    MaThuoc: row.MaThuoc,
-                    TenThuoc: row.TenThuoc,
-                    CongDung: row.CongDung,
-                    TenDVT: row.TenDVT,
-                    TenCachDung: row.TenCachDung,
-                    TacDungPhu: row.TacDungPhu,
-                    LoThuoc: []
-                };
+            if (TenThuoc) {
+                sql += ` AND t.TenThuoc LIKE ?`;
+                params.push(`%${TenThuoc}%`);
             }
 
-            if (row.MaLo) {
-                medicines[row.MaThuoc].LoThuoc.push({
-                    MaLo: row.MaLo,
-                    SoLuongTon: row.SoLuongTon,
-                    GiaBan: row.GiaBan,
-                    HanSuDung: row.HanSuDung
-                });
+            if (CongDung) {
+                sql += ` AND t.CongDung LIKE ?`;
+                params.push(`%${CongDung}%`);
             }
-        }
 
-        return Object.values(medicines);
+            sql += ` ORDER BY CAST(SUBSTRING(t.MaThuoc, 3) AS UNSIGNED), l.HanSuDung`;
+
+            const [rows] = await db.query(sql, params);
+
+            // Gom dữ liệu theo thuốc
+            const medicines = {};
+
+            for (const row of rows) {
+                if (!medicines[row.MaThuoc]) {
+                    medicines[row.MaThuoc] = {
+                        MaThuoc: row.MaThuoc,
+                        TenThuoc: row.TenThuoc,
+                        CongDung: row.CongDung,
+                        TenDVT: row.TenDVT,
+                        TenCachDung: row.TenCachDung,
+                        TacDungPhu: row.TacDungPhu,
+                        LoThuoc: []
+                    };
+                }
+
+                if (row.MaLo) {
+                    medicines[row.MaThuoc].LoThuoc.push({
+                        MaLo: row.MaLo,
+                        SoLuongTon: row.SoLuongTon,
+                        GiaBan: row.GiaBan,
+                        HanSuDung: row.HanSuDung
+                    });
+                }
+            }
+
+            return Object.values(medicines);
+        }
+        catch (error) {
+            console.log("MedicineService searchMedicine Error:", error);
+            return null;
+        }
     }
-    catch (error) {
-        console.log("MedicineService searchMedicine Error:", error);
-        return null;
-    }
-}
 
 
     // Cập nhật thuốc
