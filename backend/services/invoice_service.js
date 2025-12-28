@@ -102,6 +102,14 @@ class InvoiceService {
                 // TRƯỜNG HỢP B: KHÁCH MUA THUỐC (TienThuoc > 0)
                 // Logic: Không làm gì cả, vì tồn kho đã trừ lúc Tạo Phiếu Khám Bệnh.
                 
+                // --- E. Cập nhật lại DSKHAMBENH ---
+                await db.query(
+                    `UPDATE DSKHAMBENH
+                    SET MaHD = ?
+                    WHERE MaBN = ? AND NgayKham = DATE(?)`,
+                    [nextId, MaBN, NgayKham]
+                );
+                
                 return { ...record, Note: note };
             }
 

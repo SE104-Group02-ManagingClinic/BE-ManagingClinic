@@ -58,6 +58,11 @@ const controllers = require('../controllers/list_examination_controller');
  *                   example: "123 Đường ABC, Quận 1, TP.HCM"
  *                 MaPKB:
  *                   type: string
+ *                   nullable: true
+ *                   example: null
+ *                 MaHD:
+ *                   type: string
+ *                   nullable: true
  *                   example: null
  *       409:
  *         description: Không thể thêm bệnh nhân vào danh sách (ví dụ đã tồn tại hoặc lỗi nghiệp vụ)
@@ -199,6 +204,9 @@ router.delete('/removeFromList', controllers.removeFromList);
  *                       MaPKB:
  *                         type: string
  *                         example: "PKB001"
+ *                       MaHD:
+ *                         type: string
+ *                         example: "HD0001"
  *                   example:
  *                     - MaBN: "BN001"
  *                       HoTen: "Nguyễn Văn A"
@@ -206,12 +214,14 @@ router.delete('/removeFromList', controllers.removeFromList);
  *                       GioiTinh: "Nam"
  *                       DiaChi: "123 Đường ABC, Quận 1, TP.HCM"
  *                       MaPKB: "PKB001"
+ *                       MaHD: "HD0001"
  *                     - MaBN: "BN002"
  *                       HoTen: "Trần Thị B"
  *                       CCCD: "098765432109"
  *                       GioiTinh: "Nữ"
  *                       DiaChi: "456 Đường XYZ, Quận 2, TP.HCM"
  *                       MaPKB: "PKB002"
+ *                       MaHD: "HD0002"
  *       500:
  *         description: Lỗi hệ thống khi lấy danh sách bệnh nhân khám trong ngày
  *         content:
