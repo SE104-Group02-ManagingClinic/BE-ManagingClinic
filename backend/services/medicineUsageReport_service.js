@@ -24,7 +24,8 @@ class MedicineUsageReportService {
                 return { error: "EXISTED_REPORT" };
             }
 
-            // 1. Tổng hợp trước để check có dữ liệu không
+            // 1. Tổng hợp dữ liệu (ĐÃ SỬA LOGIC)
+            // Logic: Chỉ tính thuốc từ các Phiếu Khám có Hóa Đơn và Tiền Thuốc > 0
             const [details] = await db.query(`
                 SELECT 
                     ct.MaThuoc,
@@ -32,8 +33,10 @@ class MedicineUsageReportService {
                     SUM(ct.SoLuong) AS SoLuongDung
                 FROM CT_THUOC ct
                 JOIN PHIEUKHAMBENH pkb ON ct.MaPKB = pkb.MaPKB
+                JOIN HOADONTHANHTOAN hd ON pkb.MaPKB = hd.MaPKB  -- Join thêm hóa đơn
                 WHERE MONTH(pkb.NgayKham) = ?
                 AND YEAR(pkb.NgayKham) = ?
+                AND hd.TienThuoc > 0                             -- Chỉ lấy đơn có mua thuốc
                 GROUP BY ct.MaThuoc
             `, [Thang, Nam]);
 
@@ -164,8 +167,10 @@ class MedicineUsageReportService {
         }
     }
 
+// Cập nhật báo cáo 
     static async updateReport(MaBCSDT) {
         try {
+            // 1. Lấy thông tin tháng/năm của báo cáo
             const [[report]] = await db.query(
                 "SELECT Thang, Nam FROM BAOCAOSUDUNGTHUOC WHERE MaBCSDT = ?",
                 [MaBCSDT]
@@ -177,6 +182,7 @@ class MedicineUsageReportService {
 
             const { Thang, Nam } = report;
 
+            // 2. Tính toán lại dữ liệu (Dùng LOGIC MỚI như trên)
             const [details] = await db.query(`
                 SELECT 
                     ct.MaThuoc,
@@ -184,27 +190,27 @@ class MedicineUsageReportService {
                     SUM(ct.SoLuong) AS SoLuongDung
                 FROM CT_THUOC ct
                 JOIN PHIEUKHAMBENH pkb ON ct.MaPKB = pkb.MaPKB
+                JOIN HOADONTHANHTOAN hd ON pkb.MaPKB = hd.MaPKB
                 WHERE MONTH(pkb.NgayKham) = ?
                 AND YEAR(pkb.NgayKham) = ?
+                AND hd.TienThuoc > 0
                 GROUP BY ct.MaThuoc
             `, [Thang, Nam]);
 
-            if (details.length === 0) {
-                return { error: "NO_DATA" };
-            }
+            // 3. Xóa chi tiết cũ
+            await db.query("DELETE FROM CT_BCSDT WHERE MaBCSDT = ?", [MaBCSDT]);
 
-            await db.query(
-                "DELETE FROM CT_BCSDT WHERE MaBCSDT = ?",
-                [MaBCSDT]
-            );
-
-            for (const d of details) {
-                await db.query(
-                    `INSERT INTO CT_BCSDT
-                    (MaBCSDT, MaThuoc, SoLanDung, SoLuongDung)
-                    VALUES (?, ?, ?, ?)`,
-                    [MaBCSDT, d.MaThuoc, d.SoLanDung, d.SoLuongDung]
-                );
+            // 4. Nếu có dữ liệu mới thì insert lại
+            if (details.length > 0) {
+                for (const d of details) {
+                    await db.query(
+                        `INSERT INTO CT_BCSDT (MaBCSDT, MaThuoc, SoLanDung, SoLuongDung) VALUES (?, ?, ?, ?)`,
+                        [MaBCSDT, d.MaThuoc, d.SoLanDung, d.SoLuongDung]
+                    );
+                }
+            } else {
+                // Nếu không có dữ liệu (tháng đó không bán được thuốc nào), có thể trả về thông báo hoặc để trống chi tiết
+                // Ở đây ta vẫn return true coi như cập nhật thành công (về trạng thái rỗng)
             }
 
             return true;
@@ -223,7 +229,6 @@ class MedicineUsageReportService {
             );
 
             if (!exist) {
-                await db.rollback();
                 return { error: "NOT_FOUND" };
             }
 
