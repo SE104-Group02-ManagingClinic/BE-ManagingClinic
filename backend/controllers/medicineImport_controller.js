@@ -133,12 +133,60 @@ exports.updateMedicineImport = async (req, res) => {
     }
 };
 
-// Xóa phiếu nhập thuốc
-exports.deleteMedicineImport = async (req, res) => {
+// Xóa phiếu nhập thuốc theo MaPNT
+exports.deleteMedicineImportByFormId = async (req, res) => {
     try {
         const { MaPNT } = req.params;
 
-        const result = await MedicineImportService.deleteMedicineImport(MaPNT);
+        const result = await MedicineImportService.deleteMedicineImportByFormID(MaPNT);
+
+        // Không tìm thấy phiếu nhập
+        if (result?.error === "PNT_NOT_FOUND") {
+            return res.status(404).json({
+                message: "Không tìm thấy phiếu nhập thuốc"
+            });
+        }
+
+        // Lô đã được kê đơn
+        if (result?.error === "LOT_ALREADY_USED") {
+            return res.status(409).json({
+                message: "Không thể xóa phiếu nhập vì lô thuốc đã được kê đơn"
+            });
+        }
+
+        // Lỗi xóa
+        if (result?.error === "DELETE_FAILED") {
+            return res.status(500).json({
+                message: "Xóa phiếu nhập thất bại"
+            });
+        }
+
+        // Lỗi hệ thống
+        if (result?.error === "SYSTEM_ERROR") {
+            return res.status(500).json({
+                message: "Lỗi hệ thống"
+            });
+        }
+
+        // Thành công
+        return res.status(200).json({
+            message: "Xóa phiếu nhập thuốc thành công"
+        });
+    }
+    catch (error) {
+        console.error("Error deleteMedicineImport:", error);
+        return res.status(500).json({
+            message: "Lỗi hệ thống"
+        });
+    }
+};
+
+// Xóa phiếu nhập thuốc theo MaLo
+exports.deleteMedicineImportByBatchId = async (req, res) => {
+    try {
+        const { MaLo } = req.params;
+
+        const result = await MedicineImportService.deleteMedicineImportByFormID(MaLo);
 
         // Không tìm thấy phiếu nhập
         if (result?.error === "PNT_NOT_FOUND") {
