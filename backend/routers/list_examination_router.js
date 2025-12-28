@@ -151,14 +151,14 @@ router.delete('/removeFromList', controllers.removeFromList);
 
 /**
  * @swagger
- * /listExam/getDaylyList:
+ * /listExam/getDaylyList/{NgayKham}:
  *   get:
  *     summary: Lấy danh sách bệnh nhân khám trong ngày
  *     description: API dùng để lấy danh sách bệnh nhân khám bệnh theo ngày (NgayKham), bao gồm thông tin bệnh nhân và phiếu khám bệnh.
  *     tags:
  *       - ListExam
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: NgayKham
  *         required: true
  *         schema:
@@ -188,25 +188,19 @@ router.delete('/removeFromList', controllers.removeFromList);
  *                     properties:
  *                       MaBN:
  *                         type: string
- *                         example: "BN001"
  *                       HoTen:
  *                         type: string
- *                         example: "Nguyễn Văn A"
  *                       CCCD:
  *                         type: string
- *                         example: "012345678901"
  *                       GioiTinh:
  *                         type: string
- *                         example: "Nam"
  *                       DiaChi:
  *                         type: string
- *                         example: "123 Đường ABC, Quận 1, TP.HCM"
  *                       MaPKB:
  *                         type: string
- *                         example: "PKB001"
  *                       MaHD:
  *                         type: string
- *                         example: "HD0001"
+ *                         nullable: true
  *                   example:
  *                     - MaBN: "BN001"
  *                       HoTen: "Nguyễn Văn A"
@@ -214,14 +208,24 @@ router.delete('/removeFromList', controllers.removeFromList);
  *                       GioiTinh: "Nam"
  *                       DiaChi: "123 Đường ABC, Quận 1, TP.HCM"
  *                       MaPKB: "PKB001"
- *                       MaHD: "HD0001"
+ *                       MaHD: null
  *                     - MaBN: "BN002"
  *                       HoTen: "Trần Thị B"
  *                       CCCD: "098765432109"
  *                       GioiTinh: "Nữ"
  *                       DiaChi: "456 Đường XYZ, Quận 2, TP.HCM"
  *                       MaPKB: "PKB002"
- *                       MaHD: "HD0002"
+ *                       MaHD: null
+ *       404:
+ *         description: Không tìm thấy dữ liệu cho ngày khám đã cung cấp
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không có bệnh nhân nào trong ngày này"
  *       500:
  *         description: Lỗi hệ thống khi lấy danh sách bệnh nhân khám trong ngày
  *         content:
@@ -233,5 +237,5 @@ router.delete('/removeFromList', controllers.removeFromList);
  *                   type: string
  *                   example: "Internal Server Error"
  */
-router.get('/getDaylyList', controllers.getDailyList);
+router.get('/getDaylyList/:NgayKham', controllers.getDailyList);
 module.exports = router;
