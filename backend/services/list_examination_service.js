@@ -46,7 +46,8 @@ class ListExamService {
                     CCCD: bn[0].CCCD,
                     GioiTinh: bn[0].GioiTinh,
                     DiaChi: bn[0].DiaChi,
-                    MaPKB: null
+                    MaPKB: null, 
+                    MaHD: null
                 }
             };
         }
@@ -118,7 +119,8 @@ class ListExamService {
                     CCCD: item.CCCD,
                     GioiTinh: item.GioiTinh,
                     DiaChi: item.DiaChi,
-                    MaPKB: item.MaPKB   
+                    MaPKB: item.MaPKB,
+                    MaHD: item.MaHD 
                 }))
             };
         }

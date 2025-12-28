@@ -193,7 +193,7 @@ CREATE TABLE DSKHAMBENH (
     NgayKham DATE,
     MaBN VARCHAR(5),
     MaPKB VARCHAR(8) default null,
+    MaHD VARCHAR(7) default null,
 
-    PRIMARY KEY (NgayKham, MaBN),
-    FOREIGN KEY (MaBN) REFERENCES BENHNHAN(MaBN)
+    PRIMARY KEY (NgayKham, MaBN)
 );
