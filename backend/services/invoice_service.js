@@ -156,6 +156,21 @@ class InvoiceService {
         }
     }
 
+    static async getInvoiceByPKB(MaPKB) {
+        try {
+            const [rows] = await db.query(
+                "SELECT * FROM HOADONTHANHTOAN WHERE MaPKB = ?",
+                [MaPKB]
+            );
+            
+            return rows.length > 0 ? rows[0] : null;
+        }
+        catch (error) {
+            console.log("Invoice Service getInvoiceByPKB error: ", error);
+            return null;
+        }
+    }
+
     // Cập nhật Tiền khám, Tiền thuốc, Tổng tiền theo MaHD
     static async updateInvoice(MaHD, updateData) {
         try {
