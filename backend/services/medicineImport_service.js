@@ -40,7 +40,7 @@ class MedicineImportService {
 
             let MaLo = "LO001";
             if (lastLot) {
-                const num = parseInt(lastLot.MaLo.substring(1)) + 1;
+                const num = parseInt(lastLot.MaLo.substring(2)) + 1;
                 MaLo = "LO" + num.toString().padStart(3, "0");
             }
 
@@ -204,8 +204,8 @@ class MedicineImportService {
     }
 
 
-    // Xóa phiếu nhập thuốc
-    static async deleteMedicineImport(MaPNT) {
+    // Xóa phiếu nhập thuốc theo mã phiếu nhập
+    static async deleteMedicineImportByFormID(MaPNT) {
         try {
             await db.beginTransaction();
 
@@ -221,6 +221,65 @@ class MedicineImportService {
             }
 
             const MaLo = pnt.MaLo;
+
+            // 2. Kiểm tra lô đã được kê đơn chưa
+            const [[used]] = await db.query(
+                `SELECT 1 FROM CT_THUOC WHERE MaLo = ? LIMIT 1`,
+                [MaLo]
+            );
+
+            if (used) {
+                await db.rollback();
+                return {
+                    error: "LOT_ALREADY_USED",
+                    message: "Không thể xóa phiếu nhập vì lô thuốc đã được kê đơn"
+                };
+            }
+
+            // 3. Xóa phiếu nhập
+            const [rows] = await db.query(
+                `DELETE FROM PHIEUNHAPTHUOC WHERE MaPNT = ?`,
+                [MaPNT]
+            );
+
+            if (rows.affectedRows === 0) {
+                await db.rollback();
+                return { error: "DELETE_FAILED" };
+            }
+
+            // 4. Xóa luôn lô thuốc tương ứng
+            await db.query(
+                `DELETE FROM LOTHUOC WHERE MaLo = ?`,
+                [MaLo]
+            );
+
+            await db.commit();
+            return { ok: true };
+        }
+        catch (error) {
+            await db.rollback();
+            console.log("MedicineImportService delete Error:", error);
+            return { error: "SYSTEM_ERROR" };
+        }
+    }
+
+    // Xóa phiếu nhập thuốc theo mã lô thuốc
+    static async deleteMedicineImportByBatchId(MaLo) {
+        try {
+            await db.beginTransaction();
+
+            // 1. Lấy mã lô của phiếu nhập
+            const [[pnt]] = await db.query(
+                `SELECT MaPNT FROM PHIEUNHAPTHUOC WHERE MaLo = ?`,
+                [MaLo]
+            );
+
+            if (!pnt) {
+                await db.rollback();
+                return { error: "PNT_NOT_FOUND" };
+            }
+
+            const MaPNT = pnt.MaPNT;
 
             // 2. Kiểm tra lô đã được kê đơn chưa
             const [[used]] = await db.query(

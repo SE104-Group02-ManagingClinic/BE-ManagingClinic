@@ -279,9 +279,9 @@ router.put(
 
 /**
  * @swagger
- * /medicineImport/deleteMedicineImport/{MaPNT}:
+ * /medicineImport/deleteMedicineImportByFormId/{MaPNT}:
  *   delete:
- *     summary: Xóa phiếu nhập thuốc
+ *     summary: Xóa phiếu nhập thuốc theo MaPKB
  *     description: API dùng để xóa phiếu nhập thuốc theo mã phiếu nhập (MaPNT). Trước khi xóa, hệ thống sẽ kiểm tra các điều kiện nghiệp vụ như lô thuốc đã được kê đơn.
  *     tags:
  *       - MedicineImport
@@ -336,8 +336,71 @@ router.put(
  *                   example: "Lỗi hệ thống"
  */
 router.delete(
-    '/deleteMedicineImport/:MaPNT',
-    medicineImportController.deleteMedicineImport
+    '/deleteMedicineImportByFormId/:MaPNT',
+    medicineImportController.deleteMedicineImportByFormId
+);
+
+/**
+ * @swagger
+ * /medicineImport/deleteMedicineImportByBatchId/{MaLo}:
+ *   delete:
+ *     summary: Xóa phiếu nhập thuốc theo MaLo
+ *     description: API dùng để xóa phiếu nhập thuốc theo mã lô thuốc (MaLo). Trước khi xóa, hệ thống sẽ kiểm tra các điều kiện nghiệp vụ như lô thuốc đã được kê đơn.
+ *     tags:
+ *       - MedicineImport
+ *     parameters:
+ *       - in: path
+ *         name: MaLo
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Mã lô thuốc cần xóa
+ *         example: "LO001"
+ *     responses:
+ *       200:
+ *         description: Xóa lô thuốc thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Xóa lô thuốc thành công"
+ *       404:
+ *         description: Không tìm thấy lô thuốc để xóa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không tìm thấy lô thuốc"
+ *       409:
+ *         description: Không thể xóa  vì lô thuốc đã được kê đơn
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không thể xóa vì lô thuốc đã được kê đơn"
+ *       500:
+ *         description: Lỗi hệ thống hoặc xóa thất bại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi hệ thống"
+ */
+router.delete(
+    '/deleteMedicineImportByBatchId/:MaLo',
+    medicineImportController.deleteMedicineImportByBatchId
 );
 
 module.exports = router;
