@@ -50,7 +50,7 @@ class MedicalExamForm {
 
             // Nếu tạo header thành công
             if (resultPKB.affectedRows > 0) {
-                
+                    
                 // --- C. Insert CT_BENH ---
                 if (CT_Benh && CT_Benh.length > 0) {
                     for (const maBenh of CT_Benh) {
@@ -65,22 +65,19 @@ class MedicalExamForm {
                 // --- D. Insert CT_THUOC và TRỪ TỒN KHO ---
                 if (CT_Thuoc && CT_Thuoc.length > 0) {
                     for (const t of CT_Thuoc) {
-                        // Tính thành tiền
                         const thanhTien = t.SoLuong * t.DonGiaBan;
-                        
+                            
                         const recordThuoc = {
                             MaThuoc: t.MaThuoc,
-                            MaLo: t.MaLo, // Bắt buộc phải có từ bước confirm
+                            MaLo: t.MaLo,
                             MaPKB: nextId,
                             SoLuong: t.SoLuong,
                             DonGiaBan: t.DonGiaBan,
                             ThanhTien: thanhTien
                         };
 
-                        // D1. Insert vào CT_THUOC
                         await db.query("INSERT INTO CT_THUOC SET ?", [recordThuoc]);
 
-                        // D2. Cập nhật trừ tồn kho trong LOTHUOC (Logic trừ kho nằm ở đây)
                         await db.query(
                             "UPDATE LOTHUOC SET SoLuongTon = SoLuongTon - ? WHERE MaLo = ?",
                             [t.SoLuong, t.MaLo]
@@ -88,7 +85,15 @@ class MedicalExamForm {
                     }
                 }
 
-                return nextId; // Trả về MaPKB vừa tạo
+                // --- E. Cập nhật lại DSKHAMBENH ---
+                await db.query(
+                    `UPDATE DSKHAMBENH
+                    SET MaPKB = ?
+                    WHERE MaBN = ? AND NgayKham = DATE(?)`,
+                    [nextId, MaBN, NgayKham]
+                );
+
+                return nextId;
             }
             return null;
         } 
@@ -97,6 +102,7 @@ class MedicalExamForm {
             return null;
         }
     }
+
 
     // 2. Xác nhận thuốc (CHỈ KIỂM TRA - KHÔNG TRỪ KHO)
     static async confirmMedicalExamForm(danhSachThuoc) {
