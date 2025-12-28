@@ -153,91 +153,121 @@ class MedicalExamForm {
         }
     }
 
-
-
-    // Cap nhat phieu kham benh
-    static async updateExamForm (MaPKB, data) {
+    // Cập nhật phiếu khám bệnh (CÓ XỬ LÝ HOÀN TRẢ/TRỪ KHO)
+    static async updateExamForm(MaPKB, data) {
         try {
-            const {  
-                MaBN, 
-                NgayKham, 
-                TrieuChung, 
-                CT_Benh, 
+            const {
+                MaBN,
+                NgayKham,
+                TrieuChung,
+                CT_Benh,
                 CT_Thuoc,
                 TongTienThuoc
             } = data;
 
-            // Update thông tin chung
+            // 1. Cập nhật thông tin chung (Header)
             await db.query(
-                `update PHIEUKHAMBENH 
-                set MaBN=?, NgayKham=?, TrieuChung=?, TongTienThuoc=?
-                WHERE MaPKB=?`,
+                `UPDATE PHIEUKHAMBENH 
+                 SET MaBN=?, NgayKham=?, TrieuChung=?, TongTienThuoc=?
+                 WHERE MaPKB=?`,
                 [MaBN, NgayKham, TrieuChung, TongTienThuoc, MaPKB]
             );
 
-            // Xóa chi tiết bệnh cũ
-            await db.query(
-                "delete from CT_BENH where MaPKB=?", 
-                [MaPKB]
-            );
-
-            // Xóa chi tiết thuốc cũ
-            await db.query(
-                "delete from CT_THUOC where MaPKB=?", 
-                [MaPKB]
-            );
-
-            // Insert lại CT_BENH 
-            for (let i = 0; i < CT_Benh.length; i++) {
-                const record = {
-                    MaPKB,
-                    MaBenh: CT_Benh[i]
-                };
-                await db.query(
-                    "insert into CT_BENH set ?",
-                    [record]
-                );
+            // 2. Xử lý CT_BENH (Xóa cũ -> Thêm mới)
+            await db.query("DELETE FROM CT_BENH WHERE MaPKB=?", [MaPKB]);
+            if (CT_Benh && CT_Benh.length > 0) {
+                for (const maBenh of CT_Benh) {
+                    await db.query("INSERT INTO CT_BENH SET ?", { MaPKB, MaBenh: maBenh });
+                }
             }
 
-            // Insert lại CT_THUOC 
-            for (let i = 0; i < CT_Thuoc.length; i++) {
-                const record = {
-                    MaThuoc: CT_Thuoc[i].MaThuoc,
-                    MaPKB,
-                    SoLuong: CT_Thuoc[i].SoLuong,
-                    DonGiaBan: CT_Thuoc[i].DonGiaBan,
-                    ThanhTien: CT_Thuoc[i].ThanhTien
+            // 3. Xử lý CT_THUOC (Quan trọng: Hoàn kho cũ -> Xóa cũ -> Thêm mới -> Trừ kho mới)
+            
+            // 3a. Lấy danh sách thuốc CŨ để hoàn kho
+            const [oldMedicines] = await db.query(
+                "SELECT MaLo, SoLuong FROM CT_THUOC WHERE MaPKB = ?",
+                [MaPKB]
+            );
+
+            // 3b. Hoàn trả số lượng thuốc cũ vào kho
+            if (oldMedicines.length > 0) {
+                for (const item of oldMedicines) {
+                    await db.query(
+                        "UPDATE LOTHUOC SET SoLuongTon = SoLuongTon + ? WHERE MaLo = ?",
+                        [item.SoLuong, item.MaLo]
+                    );
                 }
-                await db.query(
-                    "insert into CT_THUOC set ?",
-                    [record]
-                );
+            }
+
+            // 3c. Xóa chi tiết thuốc cũ trong CT_THUOC
+            await db.query("DELETE FROM CT_THUOC WHERE MaPKB=?", [MaPKB]);
+
+            // 3d. Thêm chi tiết thuốc MỚI và Trừ kho
+            if (CT_Thuoc && CT_Thuoc.length > 0) {
+                for (const t of CT_Thuoc) {
+                    const thanhTien = t.SoLuong * t.DonGiaBan;
+                    const record = {
+                        MaThuoc: t.MaThuoc,
+                        MaLo: t.MaLo,
+                        MaPKB,
+                        SoLuong: t.SoLuong,
+                        DonGiaBan: t.DonGiaBan,
+                        ThanhTien: thanhTien
+                    };
+
+                    // Insert CT_THUOC mới
+                    await db.query("INSERT INTO CT_THUOC SET ?", [record]);
+
+                    // Trừ tồn kho mới
+                    await db.query(
+                        "UPDATE LOTHUOC SET SoLuongTon = SoLuongTon - ? WHERE MaLo = ?",
+                        [t.SoLuong, t.MaLo]
+                    );
+                }
             }
 
             return true;
-        }
-        catch (error) {
+        } catch (error) {
             console.error("updateExamForm error:", error);
             return false;
         }
     }
 
-    // Xoa phieu kham benh 
-    static async deleteExamForm (MaPKB) {
+    // Xóa phiếu khám bệnh (CÓ XỬ LÝ HOÀN TRẢ KHO)
+    static async deleteExamForm(MaPKB) {
         try {
-            // Xóa chi tiết bệnh/thuốc cũ
-            await db.query("delete from CT_BENH where MaPKB=?", [MaPKB]);
-            await db.query("delete from CT_THUOC where MaPKB=?", [MaPKB]);
-            const [rows] = await db.query(
-                "delete from PHIEUKHAMBENH where MaPKB = ?", 
+            // 1. Lấy danh sách thuốc trong phiếu này để hoàn kho trước khi xóa
+            const [medicines] = await db.query(
+                "SELECT MaLo, SoLuong FROM CT_THUOC WHERE MaPKB = ?",
                 [MaPKB]
             );
+
+            // 2. Hoàn trả số lượng vào kho
+            if (medicines.length > 0) {
+                for (const item of medicines) {
+                    await db.query(
+                        "UPDATE LOTHUOC SET SoLuongTon = SoLuongTon + ? WHERE MaLo = ?",
+                        [item.SoLuong, item.MaLo]
+                    );
+                }
+            }
+
+            // 3. Xóa dữ liệu trong các bảng chi tiết
+            await db.query("DELETE FROM CT_BENH WHERE MaPKB=?", [MaPKB]);
+            await db.query("DELETE FROM CT_THUOC WHERE MaPKB=?", [MaPKB]);
+
+            // 4. Xóa phiếu khám bệnh (Header)
+            const [rows] = await db.query(
+                "DELETE FROM PHIEUKHAMBENH WHERE MaPKB = ?",
+                [MaPKB]
+            );
+
             if (rows.affectedRows === 0) return false;
             return true;
         } catch (error) {
             console.error("deleteExamForm error:", error);
             return false;
-        } 
+        }
     }
 
     // Lấy danh sách phiếu khám bệnh theo ngày khám

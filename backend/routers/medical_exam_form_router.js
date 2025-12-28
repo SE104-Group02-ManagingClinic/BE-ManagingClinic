@@ -80,6 +80,12 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *                     DonGiaBan:
  *                       type: integer
  *                       example: 50000
+ *                     ThanhTien:
+ *                       type: integer
+ *                       description: |
+ *                         Thành tiền của thuốc
+ *                         = SoLuong × DonGiaBan
+ *                       example: 100000
  *               TongTienThuoc:
  *                 type: integer
  *                 example: 100000
@@ -189,10 +195,8 @@ router.post(
  *               NgayKham:
  *                 type: string
  *                 format: date
- *                 example: "2025-12-13"
  *               TrieuChung:
  *                 type: string
- *                 example: "Ho, sốt, đau đầu"
  *               CT_Benh:
  *                 type: array
  *                 items:
@@ -202,22 +206,32 @@ router.post(
  *                 type: array
  *                 items:
  *                   type: object
+ *                   required:
+ *                     - MaThuoc
+ *                     - MaLo
+ *                     - SoLuong
+ *                     - DonGiaBan
+ *                     - ThanhTien
  *                   properties:
  *                     MaThuoc:
  *                       type: string
  *                       example: "LT001"
+ *                     MaLo:
+ *                       type: string
+ *                       description: Mã lô đã confirm trước đó
+ *                       example: "LO001"
  *                     SoLuong:
  *                       type: integer
- *                       example: 2
+ *                       example: 5
  *                     DonGiaBan:
  *                       type: number
  *                       example: 50000
  *                     ThanhTien:
  *                       type: number
- *                       example: 100000
+ *                       example: 250000
  *               TongTienThuoc:
  *                 type: number
- *                 example: 200000
+ *                 example: 250000
  *     responses:
  *       200:
  *         description: Cập nhật phiếu khám bệnh thành công
