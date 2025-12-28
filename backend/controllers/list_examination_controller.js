@@ -53,7 +53,7 @@ exports.removeFromList = async (req, res) => {
 
 exports.getDailyList = async (req, res) => {
     try {
-        const { NgayKham } = req.query;
+        const { NgayKham } = req.params;
 
         const result = await ListExamService.getDailyList(NgayKham);
 

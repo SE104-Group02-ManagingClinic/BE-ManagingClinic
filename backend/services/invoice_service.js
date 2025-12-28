@@ -45,7 +45,7 @@ class InvoiceService {
 
             // 1. Lấy ID cuối để sinh mã
             const [rows] = await db.query(
-                "select MaHD from HOADONTHANHTOAN order by MaHD desc limit 1"
+                "SELECT MaHD FROM HOADONTHANHTOAN ORDER BY MaHD DESC LIMIT 1"
             );
 
             let lastId = "";
@@ -55,7 +55,7 @@ class InvoiceService {
 
             const nextId = this.createId(lastId);
             const TongTien = TienKham + TienThuoc;
-            
+                
             const record = {
                 MaHD: nextId,
                 MaPKB,
@@ -67,19 +67,17 @@ class InvoiceService {
 
             // 2. Insert Hóa đơn
             const [addRecord] = await db.query(
-                "insert into HOADONTHANHTOAN set ?",
+                "INSERT INTO HOADONTHANHTOAN SET ?",
                 [record]
             );
 
             let note = "";
 
-            // 3. Xử lý Logic Kho (Chỉ thực hiện khi insert thành công)
+            // 3. Xử lý Logic Kho
             if (addRecord.affectedRows > 0) {
-                
-                // TRƯỜNG HỢP A: KHÁCH KHÔNG MUA THUỐC (TienThuoc == 0)
-                // Logic: Hoàn trả lại số lượng thuốc vào kho
+
+                // --- A. Hoàn thuốc nếu không mua ---
                 if (TienThuoc === 0) {
-                    // Lấy danh sách thuốc đã kê trong PKB để biết lô nào cần trả
                     const [thuocList] = await db.query(
                         "SELECT MaThuoc, MaLo, SoLuong FROM CT_THUOC WHERE MaPKB = ?",
                         [MaPKB]
@@ -87,29 +85,37 @@ class InvoiceService {
 
                     if (thuocList.length > 0) {
                         for (const item of thuocList) {
-                            // Cộng lại số lượng vào LOTHUOC (SoLuongTon + SoLuong)
                             await db.query(
                                 `UPDATE LOTHUOC 
-                                 SET SoLuongTon = SoLuongTon + ? 
-                                 WHERE MaLo = ?`,
+                                SET SoLuongTon = SoLuongTon + ? 
+                                WHERE MaLo = ?`,
                                 [item.SoLuong, item.MaLo]
                             );
                         }
                         note = "Đã hoàn trả thuốc vào kho do khách không mua.";
                     }
                 }
-                
-                // TRƯỜNG HỢP B: KHÁCH MUA THUỐC (TienThuoc > 0)
-                // Logic: Không làm gì cả, vì tồn kho đã trừ lúc Tạo Phiếu Khám Bệnh.
-                
-                // --- E. Cập nhật lại DSKHAMBENH ---
+
+                // ---  B. LẤY MaBN + NgayKham TỪ PHIẾU KHÁM ---
+                const [pkbInfo] = await db.query(
+                    "SELECT MaBN, NgayKham FROM PHIEUKHAMBENH WHERE MaPKB = ?",
+                    [MaPKB]
+                );
+
+                if (pkbInfo.length === 0) {
+                    throw new Error("Không tìm thấy Phiếu Khám Bệnh");
+                }
+
+                const { MaBN, NgayKham } = pkbInfo[0];
+
+                // ---  C. CẬP NHẬT DSKHAMBENH ---
                 await db.query(
                     `UPDATE DSKHAMBENH
                     SET MaHD = ?
                     WHERE MaBN = ? AND NgayKham = DATE(?)`,
                     [nextId, MaBN, NgayKham]
                 );
-                
+
                 return { ...record, Note: note };
             }
 
@@ -120,6 +126,7 @@ class InvoiceService {
             return null;
         }
     }
+
     
     // Lay tat ca thong tin hoa don thanh toan theo ngay
     static async getInvoicesByDate(date) {

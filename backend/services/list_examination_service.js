@@ -86,20 +86,20 @@ class ListExamService {
     //Lấy danh sách 
     static async getDailyList(NgayKham) {
         try {
-            const [rows] = await db.query(
+            const [rows] = await db.query( 
                 `SELECT 
-                    d.NgayKham,
-                    d.MaPKB,
-                    b.MaBN,
-                    b.HoTen,
-                    b.CCCD,
-                    b.GioiTinh,
-                    b.DiaChi
-                FROM DSKHAMBENH d
-                JOIN BENHNHAN b ON d.MaBN = b.MaBN
-                WHERE d.NgayKham = DATE(?)
-                ORDER BY b.HoTen`,
-                [NgayKham]
+                    d.NgayKham, 
+                    d.MaPKB, 
+                    d.MaHD,
+                    b.MaBN, 
+                    b.HoTen, 
+                    b.CCCD, 
+                    b.GioiTinh, 
+                    b.DiaChi 
+                FROM DSKHAMBENH d 
+                JOIN BENHNHAN b ON d.MaBN = b.MaBN 
+                WHERE d.NgayKham = DATE(?) ORDER BY b.HoTen`, 
+                [NgayKham] 
             );
 
             if (rows.length === 0) {
@@ -120,7 +120,7 @@ class ListExamService {
                     GioiTinh: item.GioiTinh,
                     DiaChi: item.DiaChi,
                     MaPKB: item.MaPKB,
-                    MaHD: item.MaHD 
+                    MaHD: item.MaHD || null   // nếu chưa thanh toán
                 }))
             };
         }
@@ -129,6 +129,7 @@ class ListExamService {
             return null;
         }
     }
+
 
 }
 
