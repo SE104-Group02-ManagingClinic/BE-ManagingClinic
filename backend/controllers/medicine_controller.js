@@ -51,7 +51,6 @@ exports.getMedicine = async (req, res) => {
     }
 };
 
-// Tìm kiếm thuốc theo tiêu chuẩn: TenThuoc, TenDVT
 exports.searchMedicine = async (req, res) => {
     try {
         const { TenThuoc, CongDung } = req.query;
