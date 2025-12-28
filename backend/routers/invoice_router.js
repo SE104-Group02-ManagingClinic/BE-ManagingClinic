@@ -210,6 +210,76 @@ router.get('/getInvoice/:MaHD', invoiceController.getInvoiceById);
 
 /**
  * @swagger
+ * /invoice/getInvoiceByPKB/{MaPKB}:
+ *   get:
+ *     summary: Lấy hóa đơn theo mã phiếu khám bệnh
+ *     description: |
+ *       API dùng để tra cứu hóa đơn thanh toán dựa trên **mã phiếu khám bệnh (MaPKB)**.
+ *     tags:
+ *       - Invoice
+ *     parameters:
+ *       - in: path
+ *         name: MaPKB
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Mã phiếu khám bệnh cần tìm hóa đơn
+ *         example: "PKB00001"
+ *     responses:
+ *       200:
+ *         description: Tìm thấy hóa đơn – trả về thông tin hóa đơn
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 MaHD:
+ *                   type: string
+ *                   example: "HD00001"
+ *                 MaPKB:
+ *                   type: string
+ *                   example: "PKB00001"
+ *                 NgayThanhToan:
+ *                   type: string
+ *                   format: date
+ *                   example: "2025-12-15"
+ *                 TienKham:
+ *                   type: integer
+ *                   example: 100000
+ *                 TienThuoc:
+ *                   type: integer
+ *                   example: 200000
+ *                 TongTien:
+ *                   type: integer
+ *                   example: 300000
+ *       404:
+ *         description: Không tìm thấy hóa đơn cho phiếu khám bệnh này
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Không tìm thấy hóa đơn cho phiếu khám này"
+ *       500:
+ *         description: Lỗi hệ thống
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error"
+ */
+router.get(
+  '/getInvoiceByPKB/:MaPKB',
+  invoiceController.getInvoiceByPKB
+);
+
+/**
+ * @swagger
  * /invoice/updateInvoice/{MaHD}:
  *   put:
  *     summary: Cập nhật tiền khám, tiền thuốc và tổng tiền theo mã hóa đơn

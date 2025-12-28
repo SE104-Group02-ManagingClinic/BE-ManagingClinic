@@ -79,6 +79,23 @@ exports.getInvoiceById = async (req, res) => {
     }
 }
 
+exports.getInvoiceByPKB = async (req, res) => {
+    try {
+        const { MaPKB } = req.params;
+        const invoice = await InvoiceService.getInvoiceByPKB(MaPKB);
+        
+        if (invoice === null) {
+            res.status(404).json({ message: "Không tìm thấy hóa đơn cho phiếu khám này" });
+        } else {
+            res.status(200).json(invoice);
+        }
+    }
+    catch (error) {
+        console.error('Error getInvoiceByPKB: ', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 // Cập nhật tiền khám và tiền thuốc theo MaHD
 exports.updateInvoice = async (req, res) => {
     try {
