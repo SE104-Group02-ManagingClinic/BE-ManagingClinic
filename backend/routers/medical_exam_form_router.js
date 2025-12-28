@@ -80,6 +80,12 @@ const medicalExamFormController = require('../controllers/medical_exam_form_cont
  *                     DonGiaBan:
  *                       type: integer
  *                       example: 50000
+ *                     ThanhTien:
+ *                       type: integer
+ *                       description: |
+ *                         Thành tiền của thuốc
+ *                         = SoLuong × DonGiaBan
+ *                       example: 100000
  *               TongTienThuoc:
  *                 type: integer
  *                 example: 100000
