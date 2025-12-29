@@ -177,8 +177,12 @@ router.put('/updateUsage/:MaCachDung', usageController.updateUsage);
  *     responses:
  *       200:
  *         description: Xóa thành công
+ *       400:
+ *        description: Thiếu mã cách dùng cần xóa
  *       404:
  *         description: Không tìm thấy cách dùng để xóa
+ *       409:
+ *         description: Cách dùng đang được sử dụng cho thuốc, không thể xóa!
  *       500:
  *         description: Lỗi máy chủ nội bộ
  */

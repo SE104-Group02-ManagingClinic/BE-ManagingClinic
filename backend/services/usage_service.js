@@ -72,6 +72,32 @@ class UsageService {
         }
     }
 
+    // --- THÊM HÀM KIỂM TRA RÀNG BUỘC ---
+    static async canDeleteUsage(MaCachDung) {
+        try {
+            // Kiểm tra xem mã cách dùng này có đang được sử dụng trong bảng LOAITHUOC không
+            const [[used]] = await db.query(
+                "SELECT 1 FROM LOAITHUOC WHERE MaCachDung = ? LIMIT 1",
+                [MaCachDung]
+            );
+
+            if (used) {
+                return {
+                    ok: false,
+                    message: "Cách dùng đang được sử dụng cho thuốc, không thể xóa!"
+                };
+            }
+
+            return { ok: true };
+        } catch (error) {
+            console.log("UsageService canDeleteUsage Error:", error);
+            return {
+                ok: false,
+                message: "Lỗi kiểm tra ràng buộc dữ liệu"
+            };
+        }
+    }
+
     // Xóa cách dùng theo MaCachDung
     static async deleteUsage(MaCachDung) {
         try {

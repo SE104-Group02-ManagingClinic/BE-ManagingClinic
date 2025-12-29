@@ -74,6 +74,12 @@ exports.deleteUsage = async (req, res) => {
             return res.status(400).json({ error: 'Thiếu mã cách dùng cần xóa' });
         }
 
+        const check = await UsageService.canDeleteUsage(MaCachDung);
+        if (!check.ok) {
+            // Trả về lỗi 409 (Conflict) nếu đang được sử dụng
+            return res.status(409).json({ message: check.message });
+        }
+
         const result = await UsageService.deleteUsage(MaCachDung);
 
         if (result === null) {
