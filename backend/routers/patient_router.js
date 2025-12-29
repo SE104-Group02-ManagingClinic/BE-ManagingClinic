@@ -109,7 +109,7 @@ router.post('/createPatient', patientController.createPatient);
 
 /**
  * @swagger
- * /searchPatient/{cccd}:
+ * /patient/searchPatient/{cccd}:
  *   get:
  *     summary: Tra cứu bệnh nhân theo CCCD
  *     description: API dùng để tra cứu thông tin bệnh nhân theo số CCCD. Kết quả trả về bao gồm thông tin bệnh nhân và danh sách phiếu khám bệnh kèm loại bệnh, triệu chứng.
