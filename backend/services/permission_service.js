@@ -71,7 +71,7 @@ class PermissionService {
             const hasAnyPermission = await this.hasAnyPermission(MaNhom);
             
             if (!hasAnyPermission) {
-                await this.createPermission(MaNhom, DSMaChucNang);
+                await this.createPermissions(MaNhom, DSMaChucNang);
                 return true;
             }
 
