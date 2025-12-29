@@ -186,7 +186,7 @@ exports.deleteMedicineImportByBatchId = async (req, res) => {
     try {
         const { MaLo } = req.params;
 
-        const result = await MedicineImportService.deleteMedicineImportByFormID(MaLo);
+        const result = await MedicineImportService.deleteMedicineImportByBatchId(MaLo);
 
         // Không tìm thấy phiếu nhập
         if (result?.error === "PNT_NOT_FOUND") {
