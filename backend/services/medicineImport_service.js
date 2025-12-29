@@ -268,7 +268,7 @@ class MedicineImportService {
         try {
             await db.beginTransaction();
 
-            // 1. Lấy mã lô của phiếu nhập
+            // 1. Lấy mã pnt theo ma lo
             const [[pnt]] = await db.query(
                 `SELECT MaPNT FROM PHIEUNHAPTHUOC WHERE MaLo = ?`,
                 [MaLo]
