@@ -44,7 +44,7 @@ class UsageService {
     // Lấy các dòng trong bản CACHDUNG
     static async getUsage () {
         try {
-            const [rows] = await db.query("select * from CACHDUNG");
+            const [rows] = await db.query("select * from CACHDUNG ORDER BY MaCachDung ASC");
             return rows;
         }
         catch (error) {
